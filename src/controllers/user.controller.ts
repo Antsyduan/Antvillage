@@ -308,6 +308,17 @@ export async function deleteUser(c: Context<HonoEnv>): Promise<Response> {
     );
   }
 
+  if (user.email === "antsyduan@gmail.com") {
+    return c.json(
+      {
+        success: false,
+        code: "CANNOT_DELETE_SUPER_ADMIN",
+        message: "此使用者為系統最高權限帳號，無法刪除",
+      },
+      400
+    );
+  }
+
   try {
     await prisma.user.delete({
       where: { id: userId },

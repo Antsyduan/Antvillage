@@ -112,7 +112,7 @@ export function usersHtml(baseUrl: string): string {
         <button type="button" id="btn-save-permissions" class="w-full btn-primary py-2.5 mb-4">
           儲存權限
         </button>
-        <div class="pt-4 border-t border-slate-200">
+        <div class="delete-user-section pt-4 border-t border-slate-200">
           <div class="text-xs text-slate-500 mb-2">危險操作</div>
           <button type="button" id="btn-delete-user-panel" class="w-full py-2.5 rounded-lg border-2 border-red-300 bg-red-50 text-red-700 hover:bg-red-100 transition text-sm font-medium">
             <span class="flex items-center justify-center gap-2"><i data-lucide="trash-2" class="w-4 h-4"></i> 刪除使用者</span>
@@ -150,6 +150,7 @@ export function usersHtml(baseUrl: string): string {
 
   <script>
     const ORIGIN = '${origin}';
+    const SUPER_ADMIN_EMAIL = 'antsyduan@gmail.com';
     const fetchOpts = { credentials: 'include' };
     async function api(path) {
       const res = await fetch(ORIGIN + path, fetchOpts);
@@ -179,6 +180,10 @@ export function usersHtml(baseUrl: string): string {
       const el = document.getElementById('user-list');
       el.innerHTML = USERS_CACHE.map(u => {
         const roles = (u.project_roles || []).map(r => r.project_name + ' (' + r.role + ')').join('、') || '無';
+        const isSuperAdmin = u.email === SUPER_ADMIN_EMAIL;
+        const deleteBtn = isSuperAdmin
+          ? '<span class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-amber-100 text-amber-800">系統最高權限</span>'
+          : \`<button type="button" class="btn-delete-user inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-red-600 border border-red-200 hover:bg-red-50 transition" data-user-id="\${u.id}" data-user-name="\${(u.name || u.email).replace(/"/g, '&quot;')}" title="刪除使用者"><i data-lucide="trash-2" class="w-4 h-4"></i><span>刪除</span></button>\`;
         return \`<div class="card p-4 flex items-center justify-between hover:border-[var(--accent)]/40 hover:shadow-[var(--shadow-card-hover)] transition-all duration-200 cursor-pointer" data-user-id="\${u.id}">
           <div class="flex items-center gap-4">
             <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
@@ -191,10 +196,7 @@ export function usersHtml(baseUrl: string): string {
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <button type="button" class="btn-delete-user inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-red-600 border border-red-200 hover:bg-red-50 transition" data-user-id="\${u.id}" data-user-name="\${(u.name || u.email).replace(/"/g, '&quot;')}" title="刪除使用者">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
-              <span>刪除</span>
-            </button>
+            \${deleteBtn}
             <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
           </div>
         </div>\`;
@@ -283,6 +285,8 @@ export function usersHtml(baseUrl: string): string {
         </label>\`;
       }).join('');
       document.getElementById('permission-checkboxes').innerHTML = checkboxes || '<p class="text-sm text-[var(--muted)]">尚無專案</p>';
+      const deleteSection = document.getElementById('permission-panel').querySelector('.delete-user-section');
+      if (deleteSection) deleteSection.style.display = user.email === SUPER_ADMIN_EMAIL ? 'none' : 'block';
       document.getElementById('permission-panel').classList.remove('hidden');
       document.querySelectorAll('#permission-checkboxes input[type=checkbox]').forEach(cb => {
         cb.addEventListener('change', () => {

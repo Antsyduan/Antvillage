@@ -1,0 +1,38 @@
+# GitHub Actions：當 main 分支有更新時，自動部署至 Cloudflare Workers
+#
+# 必要設定：在 GitHub 倉庫 Settings > Secrets and variables > Actions 新增：
+#   - CLOUDFLARE_API_TOKEN：Cloudflare API Token（需具備 Workers 寫入權限）
+#   - CLOUDFLARE_ACCOUNT_ID：Cloudflare 帳戶 ID（可在 Dashboard 右側取得）
+#
+name: Deploy to Cloudflare Workers
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build CSS
+        run: npm run build:css
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
