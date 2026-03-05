@@ -1,0 +1,8 @@
+# 本地開發用環境變數（複製為 .dev.vars 並填入實際值）
+# wrangler dev 會自動載入 .dev.vars
+
+# 必填：金鑰加解密主金鑰（產生方式：openssl rand -base64 32）
+MASTER_KEY=
+
+# 必填：登入 Session 簽章（建議 32+ 字元）
+JWT_SECRET=your-dev-jwt-secret-at-least-32-characters

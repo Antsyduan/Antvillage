@@ -36,6 +36,68 @@ export async function getProjectById(c: Context<HonoEnv>): Promise<Response> {
   return c.json({ success: true, data: project });
 }
 
+export async function updateProject(c: Context<HonoEnv>): Promise<Response> {
+  const projectId = c.req.param("id");
+  if (!projectId) {
+    return c.json(
+      { success: false, code: "MISSING_PROJECT_ID", message: "缺少專案 ID" },
+      400
+    );
+  }
+
+  let body: { name?: string; description?: string };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json(
+      { success: false, code: "INVALID_JSON", message: "無效的 JSON" },
+      400
+    );
+  }
+
+  const name = body.name?.trim();
+  const description = body.description?.trim() ?? null;
+
+  if (!name || name.length === 0) {
+    return c.json(
+      { success: false, code: "VALIDATION_ERROR", message: "專案名稱不可為空" },
+      400
+    );
+  }
+
+  const prisma = getPrisma(c.env.DB);
+  const existing = await prisma.project.findUnique({
+    where: { id: projectId },
+  });
+
+  if (!existing) {
+    return c.json(
+      { success: false, code: "NOT_FOUND", message: "專案不存在" },
+      404
+    );
+  }
+
+  const project = await prisma.project.update({
+    where: { id: projectId },
+    data: { name, description },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      project_id: projectId,
+      user_id: c.get("user")?.id ?? null,
+      action: "UPDATE_PROJECT",
+      target: projectId,
+      payload: JSON.stringify({
+        name: project.name,
+        description: project.description,
+      }),
+    },
+  });
+
+  return c.json({ success: true, data: project });
+}
+
 export async function createSkill(c: Context<HonoEnv>): Promise<Response> {
   const prisma = getPrisma(c.env.DB);
 
@@ -134,4 +196,66 @@ export async function createSkill(c: Context<HonoEnv>): Promise<Response> {
   });
 
   return c.json({ success: true, data: skill }, 201);
+}
+
+export async function deleteProject(c: Context<HonoEnv>): Promise<Response> {
+  const projectId = c.req.param("id");
+  if (!projectId) {
+    return c.json(
+      { success: false, code: "MISSING_PROJECT_ID", message: "缺少專案 ID" },
+      400
+    );
+  }
+
+  const prisma = getPrisma(c.env.DB);
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+  });
+
+  if (!project) {
+    return c.json(
+      { success: false, code: "PROJECT_NOT_FOUND", message: "專案不存在" },
+      404
+    );
+  }
+
+  const operator = c.get("user");
+
+  try {
+    // 刪除 ProjectDailyUsage、RateLimitBucket（無 FK 關聯，需手動刪除）
+    await prisma.projectDailyUsage.deleteMany({
+      where: { project_id: projectId },
+    });
+    await prisma.rateLimitBucket.deleteMany({
+      where: { project_id: projectId },
+    });
+    await prisma.project.delete({
+      where: { id: projectId },
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json(
+      {
+        success: false,
+        code: "DELETE_ERROR",
+        message: "刪除失敗：" + msg,
+      },
+      500
+    );
+  }
+
+  await prisma.auditLog.create({
+    data: {
+      user_id: operator?.id ?? null,
+      action: "DELETE_PROJECT",
+      target: projectId,
+      payload: JSON.stringify({
+        project_name: project.name,
+        project_id: projectId,
+        operator_email: operator?.email,
+      }),
+    },
+  });
+
+  return c.json({ success: true });
 }

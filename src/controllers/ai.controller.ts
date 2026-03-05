@@ -25,8 +25,8 @@ export async function executeAi(c: Context<HonoEnv>): Promise<Response> {
     return c.json(
       {
         success: false,
-        code: "SERVICE_UNAVAILABLE",
-        message: "服務暫時無法使用",
+        code: "MASTER_KEY_NOT_CONFIGURED",
+        message: "伺服器未設定 MASTER_KEY，請執行 wrangler secret put MASTER_KEY",
       },
       503
     );

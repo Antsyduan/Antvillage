@@ -1,28 +1,44 @@
 /**
  * 專案詳情頁 — 科技感儀表板風格
  */
-export function projectDetailHtml(baseUrl: string, projectId: string): string {
-  const origin = new URL(baseUrl).origin;
+export function projectDetailHtml(_baseUrl: string, projectId: string): string {
   return `<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>專案詳情 — AntVillageMgr</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon-180.png" sizes="180x180">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-title" content="AntVillageMgr">
+  <meta name="theme-color" content="#0ea5e9">
   <link rel="stylesheet" href="/styles.css">
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
   <style>
-    body { background: var(--bg); }
+    body { background: var(--bg); font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-text-size-adjust: 100%; }
+    @media (max-width: 767px) { body { font-size: 16px; line-height: 1.6; } }
   </style>
 </head>
 <body>
-  <aside class="fixed left-0 top-0 w-56 h-screen flex flex-col bg-[#0f172a] text-white z-50 border-r border-slate-800/50 shadow-xl">
+  <header class="app-mobile-header md:hidden" aria-hidden="true">
+    <button type="button" id="btn-sidebar-toggle" class="p-2.5 -ml-2 rounded-lg text-white/90 hover:bg-white/10 transition" aria-label="開啟選單">
+      <i data-lucide="menu" class="w-6 h-6"></i>
+    </button>
+    <div class="flex items-center gap-2">
+      <img src="/logo.svg" alt="" class="w-7 h-7 rounded-lg" width="28" height="28">
+      <h1 class="font-semibold">AntVillageMgr</h1>
+    </div>
+    <span class="w-10"></span>
+  </header>
+  <div id="sidebar-overlay" class="app-sidebar-overlay" aria-hidden="true"></div>
+  <aside id="app-sidebar" class="app-sidebar fixed left-0 top-0 w-56 h-screen flex flex-col bg-[#0f172a] text-white z-50 border-r border-slate-800/50 shadow-xl">
     <div class="p-5 border-b border-slate-700">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center">
-          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-        </div>
+        <img src="/logo.svg" alt="AntVillageMgr" class="w-8 h-8 rounded-lg flex-shrink-0" width="32" height="32">
         <div>
           <h1 class="font-semibold text-sm">AntVillageMgr</h1>
           <p class="text-[11px] text-slate-400">AI 指揮中心</p>
@@ -35,13 +51,13 @@ export function projectDetailHtml(baseUrl: string, projectId: string): string {
           <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">功能</span>
         </div>
         <div class="space-y-0.5">
-          <a href="${origin}/" class="sidebar-link text-slate-300">
+          <a href="/" class="sidebar-link text-slate-300">
             <i data-lucide="layout-grid" class="w-4 h-4 opacity-70"></i> 儀表板
           </a>
-          <a href="${origin}/users" class="sidebar-link text-slate-300">
+          <a href="/users" class="sidebar-link text-slate-300">
             <i data-lucide="users" class="w-4 h-4 opacity-70"></i> 使用者管理
           </a>
-          <a href="${origin}/global-secrets" class="sidebar-link text-slate-300">
+          <a href="/global-secrets" class="sidebar-link text-slate-300">
             <i data-lucide="key" class="w-4 h-4 opacity-70"></i> 全域 API 金鑰
           </a>
         </div>
@@ -51,7 +67,7 @@ export function projectDetailHtml(baseUrl: string, projectId: string): string {
           <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">開發工具</span>
         </div>
         <div class="space-y-0.5">
-          <a href="${origin}/#sandbox" class="sidebar-link text-slate-300">
+          <a href="/#sandbox" class="sidebar-link text-slate-300">
             <i data-lucide="shield-check" class="w-4 h-4 opacity-70"></i> 金鑰驗證
           </a>
         </div>
@@ -61,7 +77,7 @@ export function projectDetailHtml(baseUrl: string, projectId: string): string {
           <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">系統</span>
         </div>
         <div class="space-y-0.5">
-          <a href="${origin}/#trust" class="sidebar-link text-slate-300">
+          <a href="/#trust" class="sidebar-link text-slate-300">
             <i data-lucide="shield" class="w-4 h-4 opacity-70"></i> 信任與安全
           </a>
         </div>
@@ -90,14 +106,47 @@ export function projectDetailHtml(baseUrl: string, projectId: string): string {
     </div>
   </aside>
 
-  <main class="ml-56 min-h-screen p-6 lg:p-8">
+  <main class="app-main ml-56 min-h-screen p-6 lg:p-8">
     <a href="/" class="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--text)] mb-6 transition">← 返回儀表板</a>
     <div id="project-header" class="mb-10">
-      <h2 id="project-name" class="text-2xl font-bold text-[var(--text)]">載入中...</h2>
-      <p id="project-desc" class="text-[var(--muted)] mt-1">—</p>
-      <div class="flex gap-3 mt-4 items-center">
-        <span id="project-status" class="text-xs font-medium px-2.5 py-1 rounded-full">—</span>
-        <span id="project-key-hint" class="text-xs text-[var(--muted)] font-mono">3rdPKey: ••••••••</span>
+      <div class="flex justify-between items-start gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 id="project-name" class="text-2xl font-bold text-[var(--text)]">載入中...</h2>
+            <button type="button" id="btn-edit-project" class="p-1.5 rounded-lg text-[var(--muted)] hover:text-[var(--accent)] hover:bg-slate-100 transition" title="編輯專案">
+              <i data-lucide="pencil" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <p id="project-desc" class="text-[var(--muted)] mt-1">—</p>
+          <div class="flex gap-3 mt-4 items-center">
+            <span id="project-status" class="text-xs font-medium px-2.5 py-1 rounded-full">—</span>
+            <span id="project-key-hint" class="text-xs text-[var(--muted)] font-mono">3rdPKey: ••••••••</span>
+          </div>
+        </div>
+        <button type="button" id="btn-delete-project" class="px-4 py-2 rounded-lg border-2 border-red-300 bg-red-50 text-red-700 hover:bg-red-100 transition text-sm font-medium flex items-center gap-2">
+          <i data-lucide="trash-2" class="w-4 h-4"></i> 刪除專案
+        </button>
+      </div>
+    </div>
+
+    <div id="modal-edit-project" class="hidden fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4">
+      <div class="card w-full max-w-md p-6" onclick="event.stopPropagation()">
+        <h3 class="text-lg font-semibold text-[var(--text)] mb-4">編輯專案</h3>
+        <form id="form-edit-project" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-[var(--text)] mb-1.5">專案名稱 *</label>
+            <input type="text" name="name" required id="edit-project-name" class="input-base" placeholder="例如：電商整合平台">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--text)] mb-1.5">備註（選填）</label>
+            <textarea name="description" id="edit-project-desc" rows="3" class="input-base" placeholder="簡述專案用途"></textarea>
+          </div>
+          <div id="edit-project-error" class="hidden text-sm text-red-600"></div>
+          <div class="flex gap-3 pt-2">
+            <button type="button" id="btn-cancel-edit-project" class="btn-secondary flex-1">取消</button>
+            <button type="submit" id="btn-submit-edit-project" class="btn-primary flex-1">儲存</button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -270,11 +319,10 @@ export function projectDetailHtml(baseUrl: string, projectId: string): string {
   </main>
 
   <script>
-    const ORIGIN = '${origin}';
     const PROJECT_ID = '${projectId}';
 
     async function loadProject() {
-      const res = await fetch(ORIGIN + '/api/projects/' + PROJECT_ID);
+      const res = await fetch('/api/projects/' + PROJECT_ID);
       const json = await res.json();
       if (!json.success) {
         document.getElementById('project-header').innerHTML = '<p class="text-red-600 font-medium">專案不存在</p>';
@@ -361,11 +409,12 @@ export function projectDetailHtml(baseUrl: string, projectId: string): string {
             sampleParams[k] = t === 'number' ? 100 : t === 'boolean' ? true : '範例輸入';
           }
         } catch (e) {}
-        const curlCode = \`curl -X POST "\${ORIGIN}/v1/ai/execute" \\
+        const base = window.location.origin;
+        const curlCode = \`curl -X POST "\${base}/v1/ai/execute" \\
   -H "Content-Type: application/json" \\
   -H "X-Project-Key: \${p.third_party_key}" \\
   -d '{"skill_id":"\${firstSkill.id}","params":\${JSON.stringify(sampleParams)}}'\`;
-        const fetchCode = \`const res = await fetch("\${ORIGIN}/v1/ai/execute", {
+        const fetchCode = \`const res = await fetch("\${base}/v1/ai/execute", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -382,7 +431,7 @@ console.log(data.success ? data.data.result : data.message);\`;
  * NexusClient - AntVillageMgr 中台對接 SDK
  * 複製此段代碼給 AI，可快速完成子網站中台整合
  */
-const NEXUS_BASE = "\${ORIGIN}";
+const NEXUS_BASE = "\${base}";
 
 class NexusClient {
   private key: string;
@@ -457,7 +506,7 @@ if (ok.data?.valid) {
         value: form.value.value
       };
       try {
-        const res = await fetch(ORIGIN + '/api/secrets', {
+        const res = await fetch('/api/secrets', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
@@ -499,7 +548,7 @@ if (ok.data?.valid) {
         is_verified: form.is_verified?.checked || false
       };
       try {
-        const res = await fetch(ORIGIN + '/api/skills', {
+        const res = await fetch('/api/skills', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
@@ -550,7 +599,7 @@ if (ok.data?.valid) {
       try {
         const headers = { 'Content-Type': 'application/json' };
         if (debugMode) headers['X-Debug'] = '1';
-        const res = await fetch(ORIGIN + '/api/projects/' + PROJECT_ID + '/skills/' + skillId + '/test', {
+        const res = await fetch('/api/projects/' + PROJECT_ID + '/skills/' + skillId + '/test', {
           method: 'POST',
           headers,
           body: JSON.stringify({ input })
@@ -605,10 +654,83 @@ if (ok.data?.valid) {
     });
 
     document.getElementById('btn-logout').onclick = () => {
-      fetch(ORIGIN + '/api/auth/logout', { method: 'POST', credentials: 'include' }).then(() => { location.href = ORIGIN + '/login'; });
+      fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).then(() => { location.href = '/login'; });
     };
+    (function initSidebarMobile() {
+      const toggle = document.getElementById('btn-sidebar-toggle');
+      const overlay = document.getElementById('sidebar-overlay');
+      const open = () => { document.body.classList.add('sidebar-open'); };
+      const close = () => { document.body.classList.remove('sidebar-open'); };
+      if (toggle) toggle.addEventListener('click', open);
+      if (overlay) overlay.addEventListener('click', close);
+      document.querySelectorAll('.app-sidebar a').forEach(a => a.addEventListener('click', () => { if (window.innerWidth < 768) close(); }));
+    })();
+    document.getElementById('btn-edit-project').onclick = () => {
+      document.getElementById('edit-project-name').value = document.getElementById('project-name').textContent || '';
+      document.getElementById('edit-project-desc').value = document.getElementById('project-desc').textContent === '—' ? '' : (document.getElementById('project-desc').textContent || '');
+      document.getElementById('edit-project-error').classList.add('hidden');
+      document.getElementById('modal-edit-project').classList.remove('hidden');
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    };
+    document.getElementById('btn-cancel-edit-project').onclick = () => {
+      document.getElementById('modal-edit-project').classList.add('hidden');
+    };
+    document.getElementById('modal-edit-project').onclick = (e) => {
+      if (e.target.id === 'modal-edit-project') document.getElementById('modal-edit-project').classList.add('hidden');
+    };
+    document.getElementById('form-edit-project').onsubmit = async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const name = form.name.value?.trim();
+      const description = form.description.value?.trim() || null;
+      const errEl = document.getElementById('edit-project-error');
+      const btnEl = document.getElementById('btn-submit-edit-project');
+      errEl.classList.add('hidden');
+      btnEl.disabled = true;
+      try {
+        const res = await fetch('/api/projects/' + PROJECT_ID, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, description }),
+          credentials: 'include'
+        });
+        const json = await res.json();
+        if (json.success) {
+          document.getElementById('modal-edit-project').classList.add('hidden');
+          document.getElementById('project-name').textContent = name;
+          document.getElementById('project-desc').textContent = description || '—';
+        } else {
+          errEl.textContent = json.message || '儲存失敗';
+          errEl.classList.remove('hidden');
+        }
+      } catch (err) {
+        errEl.textContent = '請求失敗: ' + (err.message || err);
+        errEl.classList.remove('hidden');
+      }
+      btnEl.disabled = false;
+    };
+
+    document.getElementById('btn-delete-project').onclick = async () => {
+      const name = document.getElementById('project-name').textContent || '此專案';
+      if (!confirm('確定要刪除專案「' + name + '」嗎？此操作無法復原，將一併刪除該專案的所有技能、金鑰與權限。')) return;
+      try {
+        const res = await fetch('/api/projects/' + PROJECT_ID, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        const json = await res.json();
+        if (json.success) {
+          location.href = '/';
+        } else {
+          alert(json.message || '刪除失敗');
+        }
+      } catch (e) {
+        alert('請求失敗: ' + (e.message || e));
+      }
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
-      if (typeof lucide !== 'undefined' && lucide.createIcons) if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
       loadProject();
     });
   </script>

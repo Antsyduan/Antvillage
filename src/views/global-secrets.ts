@@ -1,28 +1,44 @@
 /**
  * 全域 API 金鑰管理（僅系統管理員）
  */
-export function globalSecretsHtml(baseUrl: string): string {
-  const origin = new URL(baseUrl).origin;
+export function globalSecretsHtml(_baseUrl: string): string {
   return `<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>全域 API 金鑰 — AntVillageMgr</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon-180.png" sizes="180x180">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-title" content="AntVillageMgr">
+  <meta name="theme-color" content="#0ea5e9">
   <link rel="stylesheet" href="/styles.css">
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
   <style>
-    body { background: var(--bg); }
+    body { background: var(--bg); font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-text-size-adjust: 100%; }
+    @media (max-width: 767px) { body { font-size: 16px; line-height: 1.6; } }
   </style>
 </head>
 <body>
-  <aside class="fixed left-0 top-0 w-56 h-screen flex flex-col bg-[#0f172a] text-white z-50 border-r border-slate-800/50 shadow-xl">
+  <header class="app-mobile-header md:hidden" aria-hidden="true">
+    <button type="button" id="btn-sidebar-toggle" class="p-2.5 -ml-2 rounded-lg text-white/90 hover:bg-white/10 transition" aria-label="開啟選單">
+      <i data-lucide="menu" class="w-6 h-6"></i>
+    </button>
+    <div class="flex items-center gap-2">
+      <img src="/logo.svg" alt="" class="w-7 h-7 rounded-lg" width="28" height="28">
+      <h1 class="font-semibold">AntVillageMgr</h1>
+    </div>
+    <span class="w-10"></span>
+  </header>
+  <div id="sidebar-overlay" class="app-sidebar-overlay" aria-hidden="true"></div>
+  <aside id="app-sidebar" class="app-sidebar fixed left-0 top-0 w-56 h-screen flex flex-col bg-[#0f172a] text-white z-50 border-r border-slate-800/50 shadow-xl">
     <div class="p-5 border-b border-slate-700">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center">
-          <i data-lucide="key" class="w-4 h-4"></i>
-        </div>
+        <img src="/logo.svg" alt="AntVillageMgr" class="w-8 h-8 rounded-lg flex-shrink-0" width="32" height="32">
         <div>
           <h1 class="font-semibold text-sm">AntVillageMgr</h1>
           <p class="text-[11px] text-slate-400">全域 API 金鑰</p>
@@ -35,13 +51,13 @@ export function globalSecretsHtml(baseUrl: string): string {
           <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">功能</span>
         </div>
         <div class="space-y-0.5">
-          <a href="${origin}/" class="sidebar-link text-slate-300">
+          <a href="/" class="sidebar-link text-slate-300">
             <i data-lucide="layout-grid" class="w-4 h-4 opacity-70"></i> 儀表板
           </a>
-          <a href="${origin}/users" class="sidebar-link text-slate-300">
+          <a href="/users" class="sidebar-link text-slate-300">
             <i data-lucide="users" class="w-4 h-4 opacity-70"></i> 使用者管理
           </a>
-          <a href="${origin}/global-secrets" class="sidebar-link active">
+          <a href="/global-secrets" class="sidebar-link active">
             <i data-lucide="key" class="w-4 h-4 opacity-70"></i> 全域 API 金鑰
           </a>
         </div>
@@ -57,8 +73,8 @@ export function globalSecretsHtml(baseUrl: string): string {
     </nav>
   </aside>
 
-  <main class="ml-56 min-h-screen p-6 lg:p-8">
-    <a href="${origin}/" class="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--text)] mb-6 transition">← 返回儀表板</a>
+  <main class="app-main ml-56 min-h-screen p-6 lg:p-8">
+    <a href="/" class="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--text)] mb-6 transition">← 返回儀表板</a>
     <div class="flex items-baseline justify-between gap-4 mb-6">
       <div>
         <h2 class="text-xl font-bold text-[var(--text)]">全域 API 金鑰</h2>
@@ -123,16 +139,15 @@ export function globalSecretsHtml(baseUrl: string): string {
   </main>
 
   <script>
-    const ORIGIN = '${origin}';
     const fetchOpts = { credentials: 'include' };
     let SECRETS = [];
     let PROJECTS = [];
     let SELECTED_SECRET_ID = null;
 
     async function api(path) {
-      const res = await fetch(ORIGIN + path, fetchOpts);
-      if (res.status === 401) { location.href = ORIGIN + '/login'; return null; }
-      if (res.status === 403) { location.href = ORIGIN + '/?error=forbidden'; return null; }
+      const res = await fetch(path, fetchOpts);
+      if (res.status === 401) { location.href = '/login'; return null; }
+      if (res.status === 403) { location.href = '/?error=forbidden'; return null; }
       return res;
     }
 
@@ -218,7 +233,7 @@ export function globalSecretsHtml(baseUrl: string): string {
       const errEl = document.getElementById('add-error');
       errEl.classList.add('hidden');
       try {
-        const res = await fetch(ORIGIN + '/api/global-secrets', {
+        const res = await fetch('/api/global-secrets', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -271,7 +286,7 @@ export function globalSecretsHtml(baseUrl: string): string {
       if (!SELECTED_SECRET_ID) return;
       const projectIds = Array.from(document.querySelectorAll('#grants-checkboxes .grant-cb:checked')).map(cb => cb.dataset.projectId);
       try {
-        const res = await fetch(ORIGIN + '/api/global-secrets/' + SELECTED_SECRET_ID + '/grants', {
+        const res = await fetch('/api/global-secrets/' + SELECTED_SECRET_ID + '/grants', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ project_ids: projectIds }),
@@ -293,7 +308,7 @@ export function globalSecretsHtml(baseUrl: string): string {
     async function deleteSecret(id) {
       if (!confirm('確定要刪除此全域金鑰？')) return;
       try {
-        const res = await fetch(ORIGIN + '/api/global-secrets/' + id, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch('/api/global-secrets/' + id, { method: 'DELETE', credentials: 'include' });
         const json = await res.json();
         if (json.success) await loadData();
         else alert(json.message || '刪除失敗');
@@ -303,9 +318,17 @@ export function globalSecretsHtml(baseUrl: string): string {
     }
 
     document.getElementById('btn-logout').onclick = () => {
-      fetch(ORIGIN + '/api/auth/logout', { method: 'POST', credentials: 'include' }).then(() => { location.href = ORIGIN + '/login'; });
+      fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).then(() => { location.href = '/login'; });
     };
-
+    (function initSidebarMobile() {
+      const toggle = document.getElementById('btn-sidebar-toggle');
+      const overlay = document.getElementById('sidebar-overlay');
+      const open = () => { document.body.classList.add('sidebar-open'); };
+      const close = () => { document.body.classList.remove('sidebar-open'); };
+      if (toggle) toggle.addEventListener('click', open);
+      if (overlay) overlay.addEventListener('click', close);
+      document.querySelectorAll('.app-sidebar a').forEach(a => a.addEventListener('click', () => { if (window.innerWidth < 768) close(); }));
+    })();
     document.addEventListener('DOMContentLoaded', function() {
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
       loadData();

@@ -1,10 +1,12 @@
 /**
  * 專案建立 API
+ * 建立專案時自動加入預設 AI Skills（general_assistant、summarizer）
  */
 import type { Context } from "hono";
 import type { HonoEnv } from "../types";
 import { getPrisma } from "../lib/db";
 import { generateThirdPartyKey } from "../utils/keygen";
+import { DEFAULT_STARTER_SKILLS } from "../config/default-skills";
 
 export async function createProject(c: Context<HonoEnv>): Promise<Response> {
   let body: { name?: string; description?: string };
@@ -67,6 +69,36 @@ export async function createProject(c: Context<HonoEnv>): Promise<Response> {
       },
     });
 
+    // 自動加入預設 AI Skills
+    for (const skill of DEFAULT_STARTER_SKILLS) {
+      const created = await prisma.aiSkill.create({
+        data: {
+          project_id: project.id,
+          name: skill.name,
+          version: skill.version,
+          system_prompt: skill.system_prompt,
+          input_schema: skill.input_schema,
+          output_schema: skill.output_schema,
+          is_verified: skill.is_verified,
+          is_active: true,
+        },
+      });
+      await prisma.auditLog.create({
+        data: {
+          project_id: project.id,
+          action: "CREATE_SKILL",
+          target: created.id,
+          payload: JSON.stringify({ name: skill.name, version: skill.version, auto: true }),
+        },
+      });
+    }
+
+    // 重新查詢以取得正確的 skills 數量
+    const projectWithCount = await prisma.project.findUnique({
+      where: { id: project.id },
+      include: { _count: { select: { users: true, skills: true } } },
+    });
+
     await prisma.auditLog.create({
       data: {
         project_id: project.id,
@@ -76,7 +108,7 @@ export async function createProject(c: Context<HonoEnv>): Promise<Response> {
       },
     });
 
-    return c.json({ success: true, data: project }, 201);
+    return c.json({ success: true, data: projectWithCount ?? project }, 201);
   } catch (err) {
     const message = err instanceof Error ? err.message : "建立專案失敗";
     return c.json(

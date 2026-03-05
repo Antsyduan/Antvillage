@@ -15,7 +15,9 @@ import {
 } from "./controllers/dashboard.controller";
 import {
   getProjectById,
+  updateProject,
   createSkill,
+  deleteProject,
 } from "./controllers/project.controller";
 import { createProject } from "./controllers/project-create.controller";
 import {
@@ -42,8 +44,76 @@ import { projectDetailHtml } from "./views/project-detail";
 import { usersHtml } from "./views/users";
 import { loginHtml } from "./views/login";
 import { customerServiceDemoHtml } from "./views/customer-service-demo";
+import { logoFullSvg, faviconSvg } from "./assets/logo";
+import {
+  icon180Base64,
+  icon192Base64,
+  icon512Base64,
+} from "./generated/icons";
+
+const pngHeaders = {
+  "Content-Type": "image/png",
+  "Cache-Control": "public, max-age=86400",
+};
 
 const app = new Hono<HonoEnv>();
+
+// Logo & Favicon（公開）
+app.get("/logo.svg", (c) =>
+  new Response(logoFullSvg, {
+    headers: {
+      "Content-Type": "image/svg+xml",
+      "Cache-Control": "public, max-age=86400",
+    },
+  })
+);
+app.get("/favicon.svg", (c) =>
+  new Response(faviconSvg, {
+    headers: {
+      "Content-Type": "image/svg+xml",
+      "Cache-Control": "public, max-age=86400",
+    },
+  })
+);
+
+// PWA / Apple Touch Icon（PNG，加入主畫面用）
+app.get("/icon-180.png", (c) => {
+  const bin = Uint8Array.from(atob(icon180Base64), (ch) => ch.charCodeAt(0));
+  return new Response(bin, { headers: pngHeaders });
+});
+app.get("/icon-192.png", (c) => {
+  const bin = Uint8Array.from(atob(icon192Base64), (ch) => ch.charCodeAt(0));
+  return new Response(bin, { headers: pngHeaders });
+});
+app.get("/icon-512.png", (c) => {
+  const bin = Uint8Array.from(atob(icon512Base64), (ch) => ch.charCodeAt(0));
+  return new Response(bin, { headers: pngHeaders });
+});
+
+// Web App Manifest
+app.get("/manifest.json", (c) =>
+  new Response(
+    JSON.stringify({
+      name: "AntVillageMgr",
+      short_name: "AI 管理指揮中心",
+      description: "AI 管理指揮中心",
+      start_url: "/",
+      display: "standalone",
+      background_color: "#0f172a",
+      theme_color: "#0ea5e9",
+      icons: [
+        { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+        { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      ],
+    }),
+    {
+      headers: {
+        "Content-Type": "application/manifest+json",
+        "Cache-Control": "public, max-age=86400",
+      },
+    }
+  )
+);
 
 // Tailwind CSS（生產環境用，取代 CDN）
 app.get("/styles.css", () =>
@@ -95,6 +165,8 @@ protectedApi.use("*", requireAuth);
 protectedApi.get("/api/projects", listProjects);
 protectedApi.post("/api/projects", createProject);
 protectedApi.get("/api/projects/:id", getProjectById);
+protectedApi.put("/api/projects/:id", updateProject);
+protectedApi.delete("/api/projects/:id", deleteProject);
 protectedApi.get("/api/users", listUsers);
 protectedApi.post("/api/users", createUser);
 protectedApi.put("/api/users/:userId/permissions", updateUserPermissions);

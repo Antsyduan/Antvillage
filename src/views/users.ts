@@ -1,28 +1,44 @@
 /**
  * 使用者與權限管理頁
  */
-export function usersHtml(baseUrl: string): string {
-  const origin = new URL(baseUrl).origin;
+export function usersHtml(_baseUrl: string): string {
   return `<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>使用者管理 — AntVillageMgr</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon-180.png" sizes="180x180">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-title" content="AntVillageMgr">
+  <meta name="theme-color" content="#0ea5e9">
   <link rel="stylesheet" href="/styles.css">
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
   <style>
-    body { background: var(--bg); }
+    body { background: var(--bg); font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-text-size-adjust: 100%; }
+    @media (max-width: 767px) { body { font-size: 16px; line-height: 1.6; } }
   </style>
 </head>
 <body>
-  <aside class="fixed left-0 top-0 w-56 h-screen flex flex-col bg-[#0f172a] text-white z-50 border-r border-slate-800/50 shadow-xl">
+  <header class="app-mobile-header md:hidden" aria-hidden="true">
+    <button type="button" id="btn-sidebar-toggle" class="p-2.5 -ml-2 rounded-lg text-white/90 hover:bg-white/10 transition" aria-label="開啟選單">
+      <i data-lucide="menu" class="w-6 h-6"></i>
+    </button>
+    <div class="flex items-center gap-2">
+      <img src="/logo.svg" alt="" class="w-7 h-7 rounded-lg" width="28" height="28">
+      <h1 class="font-semibold">AntVillageMgr</h1>
+    </div>
+    <span class="w-10"></span>
+  </header>
+  <div id="sidebar-overlay" class="app-sidebar-overlay" aria-hidden="true"></div>
+  <aside id="app-sidebar" class="app-sidebar fixed left-0 top-0 w-56 h-screen flex flex-col bg-[#0f172a] text-white z-50 border-r border-slate-800/50 shadow-xl">
     <div class="p-5 border-b border-slate-700">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center">
-          <i data-lucide="users" class="w-4 h-4"></i>
-        </div>
+        <img src="/logo.svg" alt="AntVillageMgr" class="w-8 h-8 rounded-lg flex-shrink-0" width="32" height="32">
         <div>
           <h1 class="font-semibold text-sm">AntVillageMgr</h1>
           <p class="text-[11px] text-slate-400">使用者管理</p>
@@ -35,13 +51,13 @@ export function usersHtml(baseUrl: string): string {
           <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">功能</span>
         </div>
         <div class="space-y-0.5">
-          <a href="${origin}/" class="sidebar-link text-slate-300">
+          <a href="/" class="sidebar-link text-slate-300">
             <i data-lucide="layout-grid" class="w-4 h-4 opacity-70"></i> 儀表板
           </a>
-          <a href="${origin}/users" class="sidebar-link active">
+          <a href="/users" class="sidebar-link active">
             <i data-lucide="users" class="w-4 h-4 opacity-70"></i> 使用者管理
           </a>
-          <a href="${origin}/global-secrets" class="sidebar-link text-slate-300">
+          <a href="/global-secrets" class="sidebar-link text-slate-300">
             <i data-lucide="key" class="w-4 h-4 opacity-70"></i> 全域 API 金鑰
           </a>
         </div>
@@ -51,7 +67,7 @@ export function usersHtml(baseUrl: string): string {
           <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">開發工具</span>
         </div>
         <div class="space-y-0.5">
-          <a href="${origin}/#sandbox" class="sidebar-link text-slate-300">
+          <a href="/#sandbox" class="sidebar-link text-slate-300">
             <i data-lucide="shield-check" class="w-4 h-4 opacity-70"></i> 金鑰驗證
           </a>
         </div>
@@ -61,7 +77,7 @@ export function usersHtml(baseUrl: string): string {
           <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">系統</span>
         </div>
         <div class="space-y-0.5">
-          <a href="${origin}/#trust" class="sidebar-link text-slate-300">
+          <a href="/#trust" class="sidebar-link text-slate-300">
             <i data-lucide="shield" class="w-4 h-4 opacity-70"></i> 信任與安全
           </a>
         </div>
@@ -77,8 +93,8 @@ export function usersHtml(baseUrl: string): string {
     </nav>
   </aside>
 
-  <main class="ml-56 min-h-screen p-6 lg:p-8">
-    <a href="${origin}/" class="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--text)] mb-6 transition">← 返回儀表板</a>
+  <main class="app-main ml-56 min-h-screen p-6 lg:p-8">
+    <a href="/" class="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--text)] mb-6 transition">← 返回儀表板</a>
     <div class="flex items-baseline justify-between gap-4 mb-6">
       <div>
         <h2 class="text-xl font-bold text-[var(--text)]">使用者與權限管理</h2>
@@ -92,7 +108,43 @@ export function usersHtml(baseUrl: string): string {
     <div id="user-list" class="space-y-3">
     </div>
 
-    <div id="permission-panel" class="hidden fixed right-0 top-0 w-96 h-screen bg-white border-l border-[var(--border)] shadow-2xl z-40 overflow-y-auto">
+    <section class="mt-10 p-5 rounded-xl border border-[var(--border)] bg-slate-50/50">
+      <h3 class="text-sm font-semibold text-[var(--text)] mb-3 flex items-center gap-2">
+        <i data-lucide="link" class="w-4 h-4 text-[var(--accent)]"></i>
+        其他專案如何引用平台使用者服務
+      </h3>
+      <p class="text-sm text-[var(--muted)] leading-relaxed mb-4">
+        平台提供集中式使用者管理與專案導向的權限模型。其他專案可透過以下方式整合：
+      </p>
+      <div class="space-y-3 text-sm">
+        <div class="flex gap-3">
+          <span class="font-mono text-xs px-2 py-1 rounded bg-slate-200 text-slate-700 shrink-0">1</span>
+          <div>
+            <strong class="text-[var(--text)]">身分驗證</strong>：使用者在平台登入後取得 JWT，外部專案可將 JWT 傳入以驗證身分。
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <span class="font-mono text-xs px-2 py-1 rounded bg-slate-200 text-slate-700 shrink-0">2</span>
+          <div>
+            <strong class="text-[var(--text)]">權限查詢</strong>：呼叫 <code class="px-1.5 py-0.5 rounded bg-slate-200 font-mono text-xs">POST /api/auth/verify</code> 或 <code class="px-1.5 py-0.5 rounded bg-slate-200 font-mono text-xs">/v1/auth/verify</code>，帶入專案金鑰（<code class="px-1.5 py-0.5 rounded bg-slate-200 font-mono text-xs">X-Project-Key</code>）與 <code class="px-1.5 py-0.5 rounded bg-slate-200 font-mono text-xs">userId</code>，即可取得該使用者在該專案中的角色（Admin/Editor/Viewer）。
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <span class="font-mono text-xs px-2 py-1 rounded bg-slate-200 text-slate-700 shrink-0">3</span>
+          <div>
+            <strong class="text-[var(--text)]">請求範例</strong>：<code class="block mt-1 p-2 rounded bg-slate-800 text-slate-200 font-mono text-xs overflow-x-auto">POST /api/auth/verify<br>Headers: X-Project-Key: &lt;專案金鑰&gt;<br>Body: { "userId": "&lt;使用者 UUID&gt;" }</code>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <span class="font-mono text-xs px-2 py-1 rounded bg-slate-200 text-slate-700 shrink-0">4</span>
+          <div>
+            <strong class="text-[var(--text)]">回應格式</strong>：<code class="block mt-1 p-2 rounded bg-slate-800 text-slate-200 font-mono text-xs overflow-x-auto">{ "valid": true, "project": {...}, "permission": { "role": "editor", "scopes": "..." } }</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="permission-panel" class="hidden fixed right-0 top-0 w-96 h-screen bg-white border-l border-[var(--border)] shadow-2xl z-40 overflow-y-auto app-panel-mobile">
       <div class="p-6">
         <div class="flex items-center justify-between mb-6">
           <h3 class="text-lg font-semibold text-[var(--text)]">權限設定</h3>
@@ -149,12 +201,11 @@ export function usersHtml(baseUrl: string): string {
   </div>
 
   <script>
-    const ORIGIN = '${origin}';
     const SUPER_ADMIN_EMAIL = 'antsyduan@gmail.com';
     const fetchOpts = { credentials: 'include' };
     async function api(path) {
-      const res = await fetch(ORIGIN + path, fetchOpts);
-      if (res.status === 401) { window.location.href = ORIGIN + '/login'; return null; }
+      const res = await fetch(path, fetchOpts);
+      if (res.status === 401) { window.location.href = '/login'; return null; }
       return res;
     }
     let USERS_CACHE = [];
@@ -226,7 +277,7 @@ export function usersHtml(baseUrl: string): string {
 
     async function deleteUserById(userId) {
       try {
-        const res = await fetch(ORIGIN + '/api/users/' + userId, {
+        const res = await fetch('/api/users/' + userId, {
           method: 'DELETE',
           credentials: 'include'
         });
@@ -313,7 +364,7 @@ export function usersHtml(baseUrl: string): string {
         return { project_id: cb.dataset.projectId, role: sel?.value || 'viewer' };
       });
       try {
-        const res = await fetch(ORIGIN + '/api/users/' + SELECTED_USER_ID + '/permissions', {
+        const res = await fetch('/api/users/' + SELECTED_USER_ID + '/permissions', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ permissions }),
@@ -364,7 +415,7 @@ export function usersHtml(baseUrl: string): string {
       const errEl = document.getElementById('add-user-error');
       errEl.classList.add('hidden');
       try {
-        const res = await fetch(ORIGIN + '/api/users', {
+        const res = await fetch('/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, name }),
@@ -385,8 +436,17 @@ export function usersHtml(baseUrl: string): string {
     };
 
     document.getElementById('btn-logout').onclick = () => {
-      fetch(ORIGIN + '/api/auth/logout', { method: 'POST', credentials: 'include' }).then(() => { location.href = ORIGIN + '/login'; });
+      fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).then(() => { location.href = '/login'; });
     };
+    (function initSidebarMobile() {
+      const toggle = document.getElementById('btn-sidebar-toggle');
+      const overlay = document.getElementById('sidebar-overlay');
+      const open = () => { document.body.classList.add('sidebar-open'); };
+      const close = () => { document.body.classList.remove('sidebar-open'); };
+      if (toggle) toggle.addEventListener('click', open);
+      if (overlay) overlay.addEventListener('click', close);
+      document.querySelectorAll('.app-sidebar a').forEach(a => a.addEventListener('click', () => { if (window.innerWidth < 768) close(); }));
+    })();
     document.addEventListener('DOMContentLoaded', function() {
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
       loadProjects().then(() => loadUsers());
