@@ -9,7 +9,9 @@ import { encrypt } from "../utils/crypto";
 const PROVIDER_OPTIONS = [
   { value: "GEMINI", label: "Gemini (Google AI)" },
   { value: "GOOGLE", label: "Google" },
+  { value: "GOOGLE_OAUTH", label: "Google 登入 (OAuth)" },
   { value: "LINE", label: "Line" },
+  { value: "LINE_OAUTH", label: "Line 登入" },
   { value: "OPENAI", label: "OpenAI" },
   { value: "OTHER", label: "其他" },
 ];
@@ -17,7 +19,9 @@ const PROVIDER_OPTIONS = [
 const KEY_NAME_BY_PROVIDER: Record<string, string[]> = {
   GEMINI: ["GEMINI_API_KEY"],
   GOOGLE: ["GEMINI_API_KEY", "GOOGLE_API_KEY"],
+  GOOGLE_OAUTH: ["GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET"],
   LINE: ["LINE_CHANNEL_SECRET", "LINE_CHANNEL_ACCESS_TOKEN"],
+  LINE_OAUTH: ["LINE_CHANNEL_ID", "LINE_CHANNEL_SECRET"],
   OPENAI: ["OPENAI_API_KEY"],
   OTHER: [],
 };

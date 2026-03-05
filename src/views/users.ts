@@ -141,6 +141,12 @@ export function usersHtml(_baseUrl: string): string {
             <strong class="text-[var(--text)]">回應格式</strong>：<code class="block mt-1 p-2 rounded bg-slate-800 text-slate-200 font-mono text-xs overflow-x-auto">{ "valid": true, "project": {...}, "permission": { "role": "editor", "scopes": "..." } }</code>
           </div>
         </div>
+        <div class="flex gap-3 mt-3 pt-3 border-t border-slate-200/50">
+          <span class="font-mono text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 shrink-0">+</span>
+          <div>
+            <strong class="text-[var(--text)]">登入設定（Google / Line）</strong>：於「全域 API 金鑰」設定 GOOGLE_OAUTH、LINE_OAUTH 並授權專案後，專案可呼叫 <code class="px-1.5 py-0.5 rounded bg-slate-200 font-mono text-xs">POST /v1/auth/config</code> 取得 client_id、channel_secret 等，無需各自設定。
+          </div>
+        </div>
       </div>
     </section>
 

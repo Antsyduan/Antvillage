@@ -78,7 +78,7 @@ export function globalSecretsHtml(_baseUrl: string): string {
     <div class="flex items-baseline justify-between gap-4 mb-6">
       <div>
         <h2 class="text-xl font-bold text-[var(--text)]">全域 API 金鑰</h2>
-        <p class="text-sm text-[var(--muted)] mt-1">設定各專案可共用的 API 金鑰（Gemini、Line、Google 等），僅系統管理員可管理</p>
+        <p class="text-sm text-[var(--muted)] mt-1">設定各專案可共用的 API 金鑰（Gemini、Line、Google 等），僅系統管理員可管理。Google 登入、Line 登入設定後，專案可呼叫 <code class="text-xs bg-slate-100 px-1 rounded">/v1/auth/config</code> 取得，無需各自設定。</p>
       </div>
       <button type="button" id="btn-add" class="px-4 py-2.5 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:bg-blue-700 hover:shadow-md transition-all duration-200 flex items-center gap-2">
         <i data-lucide="plus" class="w-4 h-4"></i> 新增金鑰
@@ -97,18 +97,23 @@ export function globalSecretsHtml(_baseUrl: string): string {
             <select name="provider_type" required class="input-base">
               <option value="GEMINI">Gemini (Google AI)</option>
               <option value="GOOGLE">Google</option>
+              <option value="GOOGLE_OAUTH">Google 登入 (OAuth)</option>
               <option value="LINE">Line</option>
+              <option value="LINE_OAUTH">Line 登入</option>
               <option value="OPENAI">OpenAI</option>
               <option value="OTHER">其他</option>
             </select>
           </div>
           <div>
             <label class="block text-sm font-medium text-[var(--text)] mb-1.5">金鑰名稱</label>
-            <input type="text" name="key_name" required placeholder="GEMINI_API_KEY" class="input-base font-mono">
+            <div id="add-key-name-wrap">
+              <input type="text" name="key_name" required placeholder="GEMINI_API_KEY" class="input-base font-mono" id="add-key-name">
+            </div>
+            <p id="add-key-hint" class="text-xs text-[var(--muted)] mt-1 hidden">Google 登入與 Line 登入各需建立兩筆金鑰，請分別選擇並送出。</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-[var(--text)] mb-1.5">金鑰內容</label>
-            <input type="password" name="value" required placeholder="輸入 API Key" class="input-base">
+            <input type="password" name="value" required placeholder="輸入 API Key" class="input-base" id="add-key-value">
           </div>
           <div>
             <label class="block text-sm font-medium text-[var(--text)] mb-2">授權給專案</label>
@@ -116,6 +121,10 @@ export function globalSecretsHtml(_baseUrl: string): string {
             </div>
           </div>
           <div id="add-error" class="hidden text-sm text-red-600"></div>
+          <label id="add-continue-wrap" class="hidden flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="continue_add" id="add-continue">
+            <span class="text-sm text-[var(--muted)]">建立後繼續新增下一筆（登入服務需建立兩筆）</span>
+          </label>
           <div class="flex gap-3 pt-2">
           <button type="button" id="btn-cancel-add" class="btn-secondary flex-1">取消</button>
           <button type="submit" class="btn-primary flex-1">建立</button>
@@ -211,12 +220,52 @@ export function globalSecretsHtml(_baseUrl: string): string {
       \`).join('') || '<p class="text-sm text-[var(--muted)]">尚無專案</p>';
     }
 
+    const KEY_NAMES_BY_PROVIDER = {
+      GOOGLE_OAUTH: [
+        { value: 'GOOGLE_OAUTH_CLIENT_ID', label: 'GOOGLE_OAUTH_CLIENT_ID（Client ID）' },
+        { value: 'GOOGLE_OAUTH_CLIENT_SECRET', label: 'GOOGLE_OAUTH_CLIENT_SECRET（Client Secret）' }
+      ],
+      LINE_OAUTH: [
+        { value: 'LINE_CHANNEL_ID', label: 'LINE_CHANNEL_ID（Channel ID）' },
+        { value: 'LINE_CHANNEL_SECRET', label: 'LINE_CHANNEL_SECRET（Channel Secret）' }
+      ]
+    };
+    const VALUE_PLACEHOLDERS = {
+      GOOGLE_OAUTH_CLIENT_ID: '輸入 Google OAuth Client ID',
+      GOOGLE_OAUTH_CLIENT_SECRET: '輸入 Google OAuth Client Secret',
+      LINE_CHANNEL_ID: '輸入 Line Channel ID',
+      LINE_CHANNEL_SECRET: '輸入 Line Channel Secret'
+    };
+    function updateKeyNameField(providerType) {
+      const wrap = document.getElementById('add-key-name-wrap');
+      const hint = document.getElementById('add-key-hint');
+      const valueInput = document.getElementById('add-key-value');
+      const continueWrap = document.getElementById('add-continue-wrap');
+      const keys = KEY_NAMES_BY_PROVIDER[providerType];
+      if (keys) {
+        wrap.innerHTML = '<select name="key_name" required class="input-base font-mono" id="add-key-name"><option value="">— 請選擇 —</option>' + keys.map(k => '<option value="' + k.value + '">' + k.label + '</option>').join('') + '</select>';
+        hint.classList.remove('hidden');
+        continueWrap.classList.remove('hidden');
+        wrap.querySelector('#add-key-name').addEventListener('change', function() {
+          if (valueInput) valueInput.placeholder = VALUE_PLACEHOLDERS[this.value] || '輸入 API Key';
+        });
+      } else {
+        wrap.innerHTML = '<input type="text" name="key_name" required placeholder="GEMINI_API_KEY" class="input-base font-mono" id="add-key-name">';
+        hint.classList.add('hidden');
+        continueWrap.classList.add('hidden');
+        if (valueInput) valueInput.placeholder = '輸入 API Key';
+      }
+    }
     document.getElementById('btn-add').onclick = () => {
       document.getElementById('modal-add').classList.remove('hidden');
       document.getElementById('add-error').classList.add('hidden');
       document.getElementById('form-add').reset();
+      updateKeyNameField(document.getElementById('form-add').provider_type.value);
       renderAddProjectCheckboxes();
     };
+    document.getElementById('form-add').querySelector('[name="provider_type"]').addEventListener('change', function() {
+      updateKeyNameField(this.value);
+    });
 
     document.getElementById('btn-cancel-add').onclick = () => {
       document.getElementById('modal-add').classList.add('hidden');
@@ -246,7 +295,13 @@ export function globalSecretsHtml(_baseUrl: string): string {
         });
         const json = await res.json();
         if (json.success) {
-          document.getElementById('modal-add').classList.add('hidden');
+          const continueAdd = document.getElementById('add-continue')?.checked;
+          if (continueAdd) {
+            document.getElementById('add-key-value').value = '';
+            updateKeyNameField(form.provider_type.value);
+          } else {
+            document.getElementById('modal-add').classList.add('hidden');
+          }
           await loadData();
         } else {
           errEl.textContent = json.message || '建立失敗';

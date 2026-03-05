@@ -6,6 +6,7 @@ import type { HonoEnv } from "./types";
 import { tailwindStyles } from "./generated/tailwind-css";
 import { requireAuth, requireSystemAdmin } from "./middleware/auth";
 import { handleVerify } from "./controllers/auth.controller";
+import { handleAuthConfig } from "./controllers/auth-config.controller";
 import { login, logout, me } from "./controllers/login.controller";
 import {
   listProjects,
@@ -137,6 +138,10 @@ app.get("/health", (c) =>
 // Auth verify (v1 + api)
 app.all("/v1/auth/verify", (c) => handleVerify(c.req.raw, c.env));
 app.all("/api/auth/verify", (c) => handleVerify(c.req.raw, c.env));
+
+// Auth config：專案以 3rdPKey 取得 Google OAuth、Line 登入設定
+app.all("/v1/auth/config", (c) => handleAuthConfig(c.req.raw, c.env));
+app.all("/api/auth/config", (c) => handleAuthConfig(c.req.raw, c.env));
 
 // 登入 API（不需驗證）
 app.post("/api/auth/login", login);
