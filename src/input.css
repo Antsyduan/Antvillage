@@ -64,6 +64,11 @@ body {
   transition: box-shadow 200ms ease, border-color 200ms ease;
 }
 
+/* 專案卡片 grid 子項：允許縮小避免破版 */
+#project-cards > * {
+  min-width: 0;
+}
+
 /* 區塊描述文字 */
 .section-desc {
   color: var(--muted);

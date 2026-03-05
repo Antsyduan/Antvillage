@@ -201,7 +201,7 @@ export function dashboardHtml(_baseUrl: string): string {
           <i data-lucide="plus" class="w-4 h-4"></i> 新增專案
         </button>
       </div>
-      <div id="project-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+      <div id="project-cards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
       </div>
     </section>
 
@@ -445,20 +445,20 @@ export function dashboardHtml(_baseUrl: string): string {
       };
       const fmtDate = (d) => d ? new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '—';
       el.innerHTML = projects.map(p => \`
-        <a href="/projects/\${p.id}" class="card block p-5 hover:border-[var(--accent)]/40 hover:shadow-[var(--shadow-card-hover)] transition-all duration-200 group">
-          <div class="flex justify-between items-start mb-3">
-            <h4 class="font-semibold text-[var(--text)] group-hover:text-[var(--accent)] transition">\${p.name}</h4>
-            <span class="text-xs font-medium px-2 py-0.5 rounded-full \${p.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}">\${p.status === 'active' ? '線上' : '停用'}</span>
+        <a href="/projects/\${p.id}" class="card block p-5 hover:border-[var(--accent)]/40 hover:shadow-[var(--shadow-card-hover)] transition-all duration-200 group overflow-hidden min-w-0 no-underline flex flex-col">
+          <div class="flex justify-between items-start gap-2 mb-2">
+            <h4 class="font-semibold text-[var(--text)] group-hover:text-[var(--accent)] transition truncate min-w-0 flex-1">\${p.name}</h4>
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full shrink-0 \${p.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}">\${p.status === 'active' ? '線上' : '停用'}</span>
           </div>
-          <p class="text-sm text-[var(--muted)] mb-3 line-clamp-2">\${p.description || '無描述'}</p>
-          \${p.website_url ? \`<a href="\${(p.website_url.startsWith('http') ? p.website_url : 'https://' + p.website_url).replace(/"/g, '&quot;')}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center gap-1.5 text-xs text-[var(--accent)] hover:underline mb-2 truncate max-w-full"><i data-lucide="external-link" class="w-3.5 h-3.5 shrink-0"></i><span class="truncate">\${(p.website_url.replace(/^https?:\\/\\//, '') || p.website_url).replace(/"/g, '&quot;')}</span></a>\` : ''}
-          \${(p.quota?.calls_limit != null || p.quota?.token_limit != null) ? \`<div class="flex items-center gap-3 mb-3 text-[10px]">
+          <p class="text-sm text-[var(--muted)] mb-2 line-clamp-2">\${p.description || '無描述'}</p>
+          \${p.website_url ? \`<div class="mb-2 min-w-0 overflow-hidden"><button type="button" data-url="\${(p.website_url.startsWith('http') ? p.website_url : 'https://' + p.website_url).replace(/"/g, '&quot;')}" onclick="event.stopPropagation();event.preventDefault();window.open(this.dataset.url,'_blank')" class="block w-full text-left text-xs text-[var(--accent)] hover:underline bg-transparent border-0 p-0 cursor-pointer truncate"><span class="truncate">\${(p.website_url.replace(/^https?:\\/\\//, '') || p.website_url).replace(/"/g, '&quot;')}</span> <i data-lucide="external-link" class="w-3 h-3 inline-block align-middle ml-0.5"></i></button></div>\` : ''}
+          \${(p.quota?.calls_limit != null || p.quota?.token_limit != null) ? \`<div class="flex items-center gap-3 mb-2 text-[10px]">
             \${p.quota?.token_limit != null ? \`<span title="Token 額度">\${quotaIcon(p.quota.token_remaining_pct)}</span>\` : ''}
             \${p.quota?.calls_limit != null ? \`<span title="調用額度">\${quotaIcon(p.quota.calls_remaining_pct)}</span>\` : ''}
           </div>\` : ''}
-          <div class="flex items-center justify-between text-xs">
-            <button data-key="\${(p.third_party_key || '').replace(/"/g, '&quot;')}" onclick="event.preventDefault();event.stopPropagation();" class="copy-key text-[var(--accent)] font-medium hover:underline">複製金鑰</button>
-            <span class="text-[var(--muted)]">建立於 \${fmtDate(p.created_at)} · \${p._count?.users || 0} 人 · \${p._count?.skills || 0} 技能</span>
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs pt-2 border-t border-[var(--border)]/60">
+            <button data-key="\${(p.third_party_key || '').replace(/"/g, '&quot;')}" onclick="event.preventDefault();event.stopPropagation();" class="copy-key text-[var(--accent)] font-medium hover:underline shrink-0">複製金鑰</button>
+            <span class="text-[var(--muted)] shrink-0">建立於 \${fmtDate(p.created_at)} · \${p._count?.users || 0} 人 · \${p._count?.skills || 0} 技能</span>
           </div>
         </a>
       \`).join('');
