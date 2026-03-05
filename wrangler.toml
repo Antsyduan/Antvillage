@@ -2,6 +2,12 @@
 name = "antvillagemgr"
 main = "src/index.ts"
 compatibility_date = "2026-03-05"
+workers_dev = true  # 保留 antvillagemgr.antsyduan.workers.dev
+
+# 自訂網域：core.antsyduan.com（需確保 antsyduan.com 已在 Cloudflare）
+[[routes]]
+pattern = "core.antsyduan.com/*"
+zone_name = "antsyduan.com"
 
 # D1 Database binding（dev 時使用遠端 D1，與 production 一致）
 [[d1_databases]]

@@ -275,3 +275,67 @@ export async function updateUserPermissions(
       : null,
   });
 }
+
+export async function deleteUser(c: Context<HonoEnv>): Promise<Response> {
+  const userId = c.req.param("userId");
+  if (!userId) {
+    return c.json(
+      { success: false, code: "MISSING_USER_ID", message: "缺少使用者 ID" },
+      400
+    );
+  }
+
+  const operator = c.get("user");
+  if (operator?.id === userId) {
+    return c.json(
+      {
+        success: false,
+        code: "CANNOT_DELETE_SELF",
+        message: "無法刪除自己的帳號",
+      },
+      400
+    );
+  }
+
+  const prisma = getPrisma(c.env.DB);
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!user) {
+    return c.json(
+      { success: false, code: "USER_NOT_FOUND", message: "使用者不存在" },
+      404
+    );
+  }
+
+  try {
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json(
+      {
+        success: false,
+        code: "DELETE_ERROR",
+        message: "刪除失敗：" + msg,
+      },
+      500
+    );
+  }
+
+  await prisma.auditLog.create({
+    data: {
+      user_id: operator?.id ?? null,
+      action: "DELETE_USER",
+      target: userId,
+      payload: JSON.stringify({
+        deleted_email: user.email,
+        deleted_name: user.name,
+        operator_email: operator?.email,
+      }),
+    },
+  });
+
+  return c.json({ success: true });
+}

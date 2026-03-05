@@ -22,6 +22,7 @@ import {
   listUsers,
   createUser,
   updateUserPermissions,
+  deleteUser,
 } from "./controllers/user.controller";
 import { createSecret } from "./controllers/secret.controller";
 import { testSkill } from "./controllers/sandbox.controller";
@@ -97,6 +98,7 @@ protectedApi.get("/api/projects/:id", getProjectById);
 protectedApi.get("/api/users", listUsers);
 protectedApi.post("/api/users", createUser);
 protectedApi.put("/api/users/:userId/permissions", updateUserPermissions);
+protectedApi.delete("/api/users/:userId", deleteUser);
 protectedApi.get("/api/skills", listSkills);
 protectedApi.post("/api/skills", createSkill);
 protectedApi.post("/api/skills/inject", injectSkills);

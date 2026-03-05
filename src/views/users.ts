@@ -109,9 +109,15 @@ export function usersHtml(baseUrl: string): string {
           <div id="permission-checkboxes" class="space-y-3">
           </div>
         </div>
-        <button type="button" id="btn-save-permissions" class="w-full btn-primary py-2.5">
+        <button type="button" id="btn-save-permissions" class="w-full btn-primary py-2.5 mb-4">
           儲存權限
         </button>
+        <div class="pt-4 border-t border-slate-200">
+          <div class="text-xs text-slate-500 mb-2">危險操作</div>
+          <button type="button" id="btn-delete-user-panel" class="w-full py-2.5 rounded-lg border-2 border-red-300 bg-red-50 text-red-700 hover:bg-red-100 transition text-sm font-medium">
+            <span class="flex items-center justify-center gap-2"><i data-lucide="trash-2" class="w-4 h-4"></i> 刪除使用者</span>
+          </button>
+        </div>
       </div>
     </div>
   </main>
@@ -184,16 +190,57 @@ export function usersHtml(baseUrl: string): string {
               <div class="text-xs text-[var(--muted)] mt-1">\${roles}</div>
             </div>
           </div>
-          <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn-delete-user inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-red-600 border border-red-200 hover:bg-red-50 transition" data-user-id="\${u.id}" data-user-name="\${(u.name || u.email).replace(/"/g, '&quot;')}" title="刪除使用者">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+              <span>刪除</span>
+            </button>
+            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+          </div>
         </div>\`;
       }).join('');
       if (USERS_CACHE.length === 0) {
         el.innerHTML = '<p class="text-center py-12 text-[var(--muted)]">尚無使用者，點擊「新增使用者」建立</p>';
       }
-      document.querySelectorAll('[data-user-id]').forEach(card => {
-        card.addEventListener('click', () => openPermissionPanel(card.getAttribute('data-user-id')));
+      document.querySelectorAll('.card[data-user-id]').forEach(card => {
+        card.addEventListener('click', (e) => {
+          if (!e.target.closest('.btn-delete-user')) {
+            openPermissionPanel(card.getAttribute('data-user-id'));
+          }
+        });
+      });
+      document.querySelectorAll('.btn-delete-user').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const userId = btn.getAttribute('data-user-id');
+          const userName = btn.getAttribute('data-user-name') || '此使用者';
+          if (userId && confirm('確定要刪除使用者「' + userName + '」嗎？此操作無法復原。')) {
+            deleteUserById(userId);
+          }
+        });
       });
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    }
+
+    async function deleteUserById(userId) {
+      try {
+        const res = await fetch(ORIGIN + '/api/users/' + userId, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        const json = await res.json();
+        if (json.success) {
+          if (SELECTED_USER_ID === userId) {
+            document.getElementById('permission-panel').classList.add('hidden');
+            SELECTED_USER_ID = null;
+          }
+          await loadUsers();
+        } else {
+          alert(json.message || '刪除失敗');
+        }
+      } catch (e) {
+        alert('請求失敗: ' + (e.message || e));
+      }
     }
 
     async function loadProjects() {
@@ -278,6 +325,15 @@ export function usersHtml(baseUrl: string): string {
         }
       } catch (e) {
         alert('請求失敗: ' + (e.message || e));
+      }
+    };
+
+    document.getElementById('btn-delete-user-panel').onclick = () => {
+      if (!SELECTED_USER_ID) return;
+      const user = USERS_CACHE.find(u => u.id === SELECTED_USER_ID);
+      const userName = user ? (user.name || user.email) : '此使用者';
+      if (confirm('確定要刪除使用者「' + userName + '」嗎？此操作無法復原。')) {
+        deleteUserById(SELECTED_USER_ID);
       }
     };
 
