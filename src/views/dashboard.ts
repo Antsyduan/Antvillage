@@ -456,7 +456,7 @@ export function dashboardHtml(_baseUrl: string): string {
             \${p.quota?.token_limit != null ? \`<span title="Token 額度">\${quotaIcon(p.quota.token_remaining_pct)}</span>\` : ''}
             \${p.quota?.calls_limit != null ? \`<span title="調用額度">\${quotaIcon(p.quota.calls_remaining_pct)}</span>\` : ''}
           </div>\` : ''}
-          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs pt-2 border-t border-[var(--border)]/60">
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs pt-2 mt-1 border-t border-slate-200/50">
             <button data-key="\${(p.third_party_key || '').replace(/"/g, '&quot;')}" onclick="event.preventDefault();event.stopPropagation();" class="copy-key text-[var(--accent)] font-medium hover:underline shrink-0">複製金鑰</button>
             <span class="text-[var(--muted)] shrink-0">建立於 \${fmtDate(p.created_at)} · \${p._count?.users || 0} 人 · \${p._count?.skills || 0} 技能</span>
           </div>
