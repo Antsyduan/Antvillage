@@ -45,7 +45,7 @@ export async function updateProject(c: Context<HonoEnv>): Promise<Response> {
     );
   }
 
-  let body: { name?: string; description?: string };
+  let body: { name?: string; description?: string; website_url?: string };
   try {
     body = await c.req.json();
   } catch {
@@ -57,6 +57,7 @@ export async function updateProject(c: Context<HonoEnv>): Promise<Response> {
 
   const name = body.name?.trim();
   const description = body.description?.trim() ?? null;
+  const website_url = body.website_url?.trim() ?? null;
 
   if (!name || name.length === 0) {
     return c.json(
@@ -79,7 +80,7 @@ export async function updateProject(c: Context<HonoEnv>): Promise<Response> {
 
   const project = await prisma.project.update({
     where: { id: projectId },
-    data: { name, description },
+    data: { name, description, website_url },
   });
 
   await prisma.auditLog.create({
@@ -91,6 +92,7 @@ export async function updateProject(c: Context<HonoEnv>): Promise<Response> {
       payload: JSON.stringify({
         name: project.name,
         description: project.description,
+        website_url: project.website_url,
       }),
     },
   });

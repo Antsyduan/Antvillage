@@ -21,7 +21,8 @@
     "db:fix-user-status": "wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/fix_user_status.sql",
     "db:fix-demo": "wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/fix_demo_project.sql",
     "db:update-customer-prompt": "wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/update_customer_service_prompt.sql",
-    "db:migrate:global-secrets": "wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/0006_global_secrets.sql && wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/set_system_admin.sql"
+    "db:migrate:global-secrets": "wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/0006_global_secrets.sql && wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/set_system_admin.sql",
+    "db:add-website-url": "wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/0007_project_website_url.sql"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241127.0",

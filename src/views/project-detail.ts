@@ -118,6 +118,7 @@ export function projectDetailHtml(_baseUrl: string, projectId: string): string {
             </button>
           </div>
           <p id="project-desc" class="text-[var(--muted)] mt-1">—</p>
+          <div id="project-url-wrap" class="hidden mt-2"></div>
           <div class="flex gap-3 mt-4 items-center">
             <span id="project-status" class="text-xs font-medium px-2.5 py-1 rounded-full">—</span>
             <span id="project-key-hint" class="text-xs text-[var(--muted)] font-mono">3rdPKey: ••••••••</span>
@@ -140,6 +141,10 @@ export function projectDetailHtml(_baseUrl: string, projectId: string): string {
           <div>
             <label class="block text-sm font-medium text-[var(--text)] mb-1.5">備註（選填）</label>
             <textarea name="description" id="edit-project-desc" rows="3" class="input-base" placeholder="簡述專案用途"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--text)] mb-1.5">專案網址（選填）</label>
+            <input type="url" name="website_url" id="edit-project-url" class="input-base" placeholder="https://example.com">
           </div>
           <div id="edit-project-error" class="hidden text-sm text-red-600"></div>
           <div class="flex gap-3 pt-2">
@@ -320,6 +325,7 @@ export function projectDetailHtml(_baseUrl: string, projectId: string): string {
 
   <script>
     const PROJECT_ID = '${projectId}';
+    let CURRENT_PROJECT = null;
 
     async function loadProject() {
       const res = await fetch('/api/projects/' + PROJECT_ID);
@@ -329,8 +335,19 @@ export function projectDetailHtml(_baseUrl: string, projectId: string): string {
         return;
       }
       const p = json.data;
+      CURRENT_PROJECT = p;
       document.getElementById('project-name').textContent = p.name;
       document.getElementById('project-desc').textContent = p.description || '—';
+      const urlWrap = document.getElementById('project-url-wrap');
+      if (p.website_url) {
+        urlWrap.classList.remove('hidden');
+        const href = p.website_url.startsWith('http') ? p.website_url : 'https://' + p.website_url;
+        const display = p.website_url.replace(/^https?:\\/\\//, '');
+        urlWrap.innerHTML = \`<a href="\${href}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-sm text-[var(--accent)] hover:underline"><i data-lucide="external-link" class="w-4 h-4"></i>\${display}</a>\`;
+      } else {
+        urlWrap.classList.add('hidden');
+        urlWrap.innerHTML = '';
+      }
       document.getElementById('project-status').textContent = p.status === 'active' ? '線上' : '停用';
       document.getElementById('project-status').className = 'text-xs font-medium px-2.5 py-1 rounded-full ' + (p.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600');
       document.getElementById('project-key-hint').textContent = '3rdPKey: ' + (p.third_party_key ? p.third_party_key.substring(0,8) + '••••' : '—');
@@ -668,6 +685,7 @@ if (ok.data?.valid) {
     document.getElementById('btn-edit-project').onclick = () => {
       document.getElementById('edit-project-name').value = document.getElementById('project-name').textContent || '';
       document.getElementById('edit-project-desc').value = document.getElementById('project-desc').textContent === '—' ? '' : (document.getElementById('project-desc').textContent || '');
+      document.getElementById('edit-project-url').value = CURRENT_PROJECT?.website_url || '';
       document.getElementById('edit-project-error').classList.add('hidden');
       document.getElementById('modal-edit-project').classList.remove('hidden');
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
@@ -683,6 +701,7 @@ if (ok.data?.valid) {
       const form = e.target;
       const name = form.name.value?.trim();
       const description = form.description.value?.trim() || null;
+      const website_url = form.website_url?.value?.trim() || null;
       const errEl = document.getElementById('edit-project-error');
       const btnEl = document.getElementById('btn-submit-edit-project');
       errEl.classList.add('hidden');
@@ -691,7 +710,7 @@ if (ok.data?.valid) {
         const res = await fetch('/api/projects/' + PROJECT_ID, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, description }),
+          body: JSON.stringify({ name, description, website_url }),
           credentials: 'include'
         });
         const json = await res.json();
@@ -699,6 +718,18 @@ if (ok.data?.valid) {
           document.getElementById('modal-edit-project').classList.add('hidden');
           document.getElementById('project-name').textContent = name;
           document.getElementById('project-desc').textContent = description || '—';
+          if (CURRENT_PROJECT) CURRENT_PROJECT.website_url = website_url;
+          const urlWrap = document.getElementById('project-url-wrap');
+          if (website_url) {
+            urlWrap.classList.remove('hidden');
+            const href = website_url.startsWith('http') ? website_url : 'https://' + website_url;
+            const display = website_url.replace(/^https?:\\/\\//, '');
+            urlWrap.innerHTML = \`<a href="\${href}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-sm text-[var(--accent)] hover:underline"><i data-lucide="external-link" class="w-4 h-4"></i>\${display}</a>\`;
+          } else {
+            urlWrap.classList.add('hidden');
+            urlWrap.innerHTML = '';
+          }
+          if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
         } else {
           errEl.textContent = json.message || '儲存失敗';
           errEl.classList.remove('hidden');

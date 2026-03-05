@@ -218,6 +218,10 @@ export function dashboardHtml(_baseUrl: string): string {
             <label class="block text-sm font-medium text-[var(--text)] mb-1.5">描述（選填）</label>
             <textarea name="description" rows="3" class="input-base" placeholder="簡述專案用途"></textarea>
           </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--text)] mb-1.5">專案網址（選填）</label>
+            <input type="url" name="website_url" class="input-base" placeholder="https://example.com">
+          </div>
           <div id="add-project-error" class="hidden text-sm text-red-600"></div>
           <div class="flex gap-3 pt-2">
             <button type="button" id="btn-cancel-add-project" class="btn-secondary flex-1">取消</button>
@@ -439,6 +443,7 @@ export function dashboardHtml(_baseUrl: string): string {
           <span class="text-[10px] text-[var(--muted)]">\${pct}%</span>
         </span>\`;
       };
+      const fmtDate = (d) => d ? new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '—';
       el.innerHTML = projects.map(p => \`
         <a href="/projects/\${p.id}" class="card block p-5 hover:border-[var(--accent)]/40 hover:shadow-[var(--shadow-card-hover)] transition-all duration-200 group">
           <div class="flex justify-between items-start mb-3">
@@ -446,13 +451,14 @@ export function dashboardHtml(_baseUrl: string): string {
             <span class="text-xs font-medium px-2 py-0.5 rounded-full \${p.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}">\${p.status === 'active' ? '線上' : '停用'}</span>
           </div>
           <p class="text-sm text-[var(--muted)] mb-3 line-clamp-2">\${p.description || '無描述'}</p>
+          \${p.website_url ? \`<a href="\${(p.website_url.startsWith('http') ? p.website_url : 'https://' + p.website_url).replace(/"/g, '&quot;')}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center gap-1.5 text-xs text-[var(--accent)] hover:underline mb-2 truncate max-w-full"><i data-lucide="external-link" class="w-3.5 h-3.5 shrink-0"></i><span class="truncate">\${(p.website_url.replace(/^https?:\\/\\//, '') || p.website_url).replace(/"/g, '&quot;')}</span></a>\` : ''}
           \${(p.quota?.calls_limit != null || p.quota?.token_limit != null) ? \`<div class="flex items-center gap-3 mb-3 text-[10px]">
             \${p.quota?.token_limit != null ? \`<span title="Token 額度">\${quotaIcon(p.quota.token_remaining_pct)}</span>\` : ''}
             \${p.quota?.calls_limit != null ? \`<span title="調用額度">\${quotaIcon(p.quota.calls_remaining_pct)}</span>\` : ''}
           </div>\` : ''}
           <div class="flex items-center justify-between text-xs">
             <button data-key="\${(p.third_party_key || '').replace(/"/g, '&quot;')}" onclick="event.preventDefault();event.stopPropagation();" class="copy-key text-[var(--accent)] font-medium hover:underline">複製金鑰</button>
-            <span class="text-[var(--muted)]">\${p._count?.users || 0} 人 · \${p._count?.skills || 0} 技能</span>
+            <span class="text-[var(--muted)]">建立於 \${fmtDate(p.created_at)} · \${p._count?.users || 0} 人 · \${p._count?.skills || 0} 技能</span>
           </div>
         </a>
       \`).join('');
@@ -693,6 +699,7 @@ export function dashboardHtml(_baseUrl: string): string {
       const form = e.target;
       const name = form.name.value?.trim();
       const description = form.description.value?.trim();
+      const website_url = form.website_url?.value?.trim() || null;
       const errEl = document.getElementById('add-project-error');
       const btnEl = document.getElementById('btn-submit-project');
       errEl.classList.add('hidden');
@@ -701,7 +708,7 @@ export function dashboardHtml(_baseUrl: string): string {
         const res = await fetch('/api/projects', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, description }),
+          body: JSON.stringify({ name, description, website_url }),
           credentials: 'include'
         });
         const text = await res.text();

@@ -13,6 +13,7 @@ export interface VerifyKeyResult {
     name: string;
     description: string | null;
     domain_whitelist: string | null;
+    status: string;
   };
   permission?: {
     role: string;
@@ -42,6 +43,7 @@ export async function verifyProjectKey(
       name: project.name,
       description: project.description,
       domain_whitelist: project.domain_whitelist,
+      status: project.status,
     },
   };
 

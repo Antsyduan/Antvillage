@@ -21,6 +21,7 @@ model Project {
   description      String?
   third_party_key  String       @unique // 給子網站串接的 API Key (3rdPKey)
   domain_whitelist String?      // 網域白名單，加強安全
+  website_url      String?      // 專案網址，選填
   status           String       @default("active") // active, suspended
   quota_per_minute    Int?     // 每分鐘調用上限，null 則用預設 100
   max_daily_calls     Int?     // 每日調用上限，null 則不限制

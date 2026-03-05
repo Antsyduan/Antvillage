@@ -9,7 +9,7 @@ import { generateThirdPartyKey } from "../utils/keygen";
 import { DEFAULT_STARTER_SKILLS } from "../config/default-skills";
 
 export async function createProject(c: Context<HonoEnv>): Promise<Response> {
-  let body: { name?: string; description?: string };
+  let body: { name?: string; description?: string; website_url?: string };
   try {
     body = await c.req.json();
   } catch {
@@ -57,10 +57,12 @@ export async function createProject(c: Context<HonoEnv>): Promise<Response> {
       );
     }
 
+    const websiteUrl = body.website_url?.trim() || null;
     const project = await prisma.project.create({
       data: {
         name,
         description: body.description?.trim() || null,
+        website_url: websiteUrl,
         third_party_key: thirdPartyKey,
         status: "active",
       },
