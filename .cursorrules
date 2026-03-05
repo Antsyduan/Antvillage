@@ -1,0 +1,29 @@
+# AntVillageMgr System Rules
+
+## 1. Database & Portability
+- **Provider:** Cloudflare D1 (Current) / SQL Server (Target).
+- **Tooling:** Always use Prisma ORM. 
+- **Compatibility:** Avoid SQLite-specific functions. Use standard SQL types. Primary keys must be UUIDs (String) to ensure seamless migration to Azure SQL.
+- **Environment:** Use `npx wrangler d1` commands for all database migrations and executions.
+
+## 2. Security & Secrets (Top Priority)
+- **Zero Exposure:** NEVER hardcode API keys or secrets in the code.
+- **Encryption:** Use `crypto` module for AES-256-GCM encryption of sensitive values in `SecretVault`.
+- **Environment Variables:** All master keys and DB IDs must be accessed via `env` in Workers.
+- **Auth:** All external APIs must require a valid `Project_3rd_Party_Key` and JWT.
+
+## 3. AI Skills & Logic
+- **Structure:** AI Skills must include `system_prompt`, `input_schema`, and `output_schema`.
+- **Validation:** Use `Zod` to validate all incoming payloads against the `input_schema` stored in the database.
+- **Proxy Pattern:** Implement a proxy handler for Gemini/Line/Google APIs so that raw keys never leave the server.
+
+## 4. Coding Standards (Vibe Coding Support)
+- **TypeScript:** Strict mode is mandatory. All interfaces must be explicitly defined.
+- **Modularization:** Separate logic into `services/`, `controllers/`, `repository/`, and `utils/`.
+- **Error Handling:** Standardize error responses: `{ success: false, code: string, message: string }`.
+- **Audit:** Every write operation to the DB must trigger an `AuditLog` entry.
+
+## 5. Deployment Info
+- **D1_NAME:** antvillagemgr
+- **D1_ID:** ebb9752a-06cf-4dcb-8692-43cdbebbc6f5
+- **Compatibility_Date:** 2026-03-05

@@ -1,0 +1,204 @@
+// AntVillageMgr - Prisma Schema
+// Provider: Cloudflare D1 (SQLite) / Target: Azure SQL Server
+// Primary keys: UUID (String) for seamless migration
+// Avoid SQLite-specific functions, use standard SQL types
+
+generator client {
+  provider = "prisma-client-js"
+  // 預留給未來遷移 MSSQL 使用，只需更換 provider
+  // previewFeatures = ["microsoftSqlServer"]
+}
+
+datasource db {
+  provider = "sqlite" // 目前對接 Cloudflare D1
+  url      = env("DATABASE_URL")
+}
+
+// 1. 專案管理：定義不同的網站或應用程式
+model Project {
+  id               String       @id @default(uuid())
+  name             String
+  description      String?
+  third_party_key  String       @unique // 給子網站串接的 API Key (3rdPKey)
+  domain_whitelist String?      // 網域白名單，加強安全
+  status           String       @default("active") // active, suspended
+  quota_per_minute    Int?     // 每分鐘調用上限，null 則用預設 100
+  max_daily_calls     Int?     // 每日調用上限，null 則不限制
+  daily_token_limit   Int?    // 每日 Token 消耗上限，null 則不限制
+  created_at          DateTime @default(now())
+
+  // 關聯
+  users                  Permission[]
+  skill_grants           ProjectSkillMap[]
+  secrets                SecretVault[]
+  global_secret_grants   ProjectGlobalSecretMap[]
+  skills                 AiSkill[]
+  audit_logs             AuditLog[]
+
+  @@map("Project")
+}
+
+// 2. 使用者中心：管理各平台可以使用的人
+model User {
+  id               String       @id @default(uuid())
+  email            String       @unique
+  password_hash    String
+  name             String?
+  status           String       @default("active")
+  is_system_admin  Boolean      @default(false) // 系統管理員：可管理全域 API 金鑰
+  created_at       DateTime     @default(now())
+
+  // 關聯
+  project_roles Permission[]
+  audit_logs    AuditLog[]
+
+  @@map("User")
+}
+
+// 3. 權限管理 (RBAC)：管理各網站的權限（新增、修改、刪除、閱讀）
+model Permission {
+  id         String   @id @default(uuid())
+  project_id String
+  user_id    String
+  role       String   @default("viewer") // admin, editor, viewer
+
+  // 細節權限控制 (使用 JSON 存儲，確保 Vibe coding 的彈性)
+  // 例如: {"can_create": true, "can_delete": false}
+  scopes String @default("{}")
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([project_id, user_id]) // 確保一個使用者在一個專案中只有一個角色
+  @@map("Permission")
+}
+
+// 4. 金鑰保險箱：管理 Gemini API, Google Console, Line API Keys (AES-256-GCM)
+model SecretVault {
+  id              String   @id @default(uuid())
+  project_id      String
+  key_name        String // 例如: GEMINI_API_KEY
+  encrypted_data  String // AES-256-GCM 加密後的內容 (base64)
+  iv              String // 加密向量 (base64)
+  auth_tag        String // GCM 認證標籤 (base64)，確保完整性
+  provider_type   String // 例如: GOOGLE, LINE, OPENAI
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@unique([project_id, key_name])
+  @@map("SecretVault")
+}
+
+// 4b. 全域 API 金鑰：專案可共用的金鑰（僅系統管理員可管理）
+model GlobalSecret {
+  id              String   @id @default(uuid())
+  provider_type   String   // GEMINI, LINE, GOOGLE, OPENAI 等
+  key_name        String   // 例如 GEMINI_API_KEY, LINE_CHANNEL_SECRET
+  encrypted_data  String
+  iv              String
+  auth_tag        String
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  created_by      String?  // 建立者 user_id
+
+  project_grants  ProjectGlobalSecretMap[]
+
+  @@unique([provider_type, key_name])
+  @@map("GlobalSecret")
+}
+
+// 4c. 專案可使用哪些全域金鑰
+model ProjectGlobalSecretMap {
+  id               String   @id @default(uuid())
+  project_id       String
+  global_secret_id String
+  created_at       DateTime @default(now())
+
+  project       Project      @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  global_secret GlobalSecret @relation(fields: [global_secret_id], references: [id], onDelete: Cascade)
+
+  @@unique([project_id, global_secret_id])
+  @@map("ProjectGlobalSecretMap")
+}
+
+// 5. AI 技能庫：管理各網站 AI 可以引用的 Skills
+model AiSkill {
+  id            String   @id @default(uuid())
+  project_id    String
+  name          String
+  version       String   @default("1.0.0")
+  system_prompt String   // AI 的核心靈魂
+  input_schema  String   // JSON Schema，驗證傳入參數是否正確
+  output_schema String?  // JSON Schema，回應結構定義
+  tools_config  String?  // Function Calling 的工具定義
+  is_verified   Boolean  @default(false) // 只有經認證的 Skill 才能被正式調用
+  is_active     Boolean  @default(true)  // 版本控管：同名 Skill 僅一版為 active
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  grants  ProjectSkillMap[]
+
+  @@unique([project_id, name, version])
+  @@map("AiSkill")
+}
+
+// 5b. Skills 作用域：僅被授權的專案可調用特定 Skill
+model ProjectSkillMap {
+  id         String   @id @default(uuid())
+  project_id String   // 被授權可調用的專案
+  skill_id   String
+  created_at DateTime @default(now())
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  skill   AiSkill @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@unique([project_id, skill_id])
+  @@map("ProjectSkillMap")
+}
+
+// 6. 審計日誌：確保系統正確性與信任的機制
+model AuditLog {
+  id         String   @id @default(uuid())
+  project_id String?
+  user_id    String?
+  action     String // 例如: "CREATE_SKILL", "ACCESS_SECRET"
+  target     String? // 被操作的物件 ID
+  payload    String? // 異動前的數據或操作細節 (JSON)
+  ip_address String?
+  timestamp  DateTime @default(now())
+
+  project Project? @relation(fields: [project_id], references: [id], onDelete: SetNull)
+  user    User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@index([project_id, timestamp])
+  @@index([action, timestamp])
+  @@map("AuditLog")
+}
+
+// 7. 每日使用量：max_daily_calls + daily_token_limit 監控
+model ProjectDailyUsage {
+  id          String   @id @default(uuid())
+  project_id  String
+  date_key    String   // 例如 "2024-01-15"
+  count       Int      @default(0)  // 調用次數
+  token_count Int      @default(0)  // Token 消耗量
+  updated_at  DateTime @updatedAt
+
+  @@unique([project_id, date_key])
+  @@map("ProjectDailyUsage")
+}
+
+// 8. API 熔斷：每分鐘請求計數
+model RateLimitBucket {
+  id         String   @id @default(uuid())
+  project_id String
+  window_key String   // 例如 "2024-01-15T14:30" (分鐘粒度)
+  count      Int      @default(0)
+  updated_at DateTime @updatedAt
+
+  @@unique([project_id, window_key])
+  @@map("RateLimitBucket")
+}

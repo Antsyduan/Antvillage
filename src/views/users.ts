@@ -1,0 +1,337 @@
+/**
+ * 使用者與權限管理頁
+ */
+export function usersHtml(baseUrl: string): string {
+  const origin = new URL(baseUrl).origin;
+  return `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>使用者管理 — AntVillageMgr</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    body { background: var(--bg); }
+  </style>
+</head>
+<body>
+  <aside class="fixed left-0 top-0 w-56 h-screen flex flex-col bg-[#0f172a] text-white z-50 border-r border-slate-800/50 shadow-xl">
+    <div class="p-5 border-b border-slate-700">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center">
+          <i data-lucide="users" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h1 class="font-semibold text-sm">AntVillageMgr</h1>
+          <p class="text-[11px] text-slate-400">使用者管理</p>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 p-3 overflow-y-auto">
+      <div class="mb-4">
+        <div class="px-3 mb-2">
+          <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">功能</span>
+        </div>
+        <div class="space-y-0.5">
+          <a href="${origin}/" class="sidebar-link text-slate-300">
+            <i data-lucide="layout-grid" class="w-4 h-4 opacity-70"></i> 儀表板
+          </a>
+          <a href="${origin}/users" class="sidebar-link active">
+            <i data-lucide="users" class="w-4 h-4 opacity-70"></i> 使用者管理
+          </a>
+          <a href="${origin}/global-secrets" class="sidebar-link text-slate-300">
+            <i data-lucide="key" class="w-4 h-4 opacity-70"></i> 全域 API 金鑰
+          </a>
+        </div>
+      </div>
+      <div class="mb-4">
+        <div class="px-3 mb-2">
+          <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">開發工具</span>
+        </div>
+        <div class="space-y-0.5">
+          <a href="${origin}/#sandbox" class="sidebar-link text-slate-300">
+            <i data-lucide="shield-check" class="w-4 h-4 opacity-70"></i> 金鑰驗證
+          </a>
+        </div>
+      </div>
+      <div class="mb-4">
+        <div class="px-3 mb-2">
+          <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">系統</span>
+        </div>
+        <div class="space-y-0.5">
+          <a href="${origin}/#trust" class="sidebar-link text-slate-300">
+            <i data-lucide="shield" class="w-4 h-4 opacity-70"></i> 信任與安全
+          </a>
+        </div>
+      </div>
+      <div class="pt-3 mt-3 border-t border-slate-700">
+        <div class="px-3 mb-2">
+          <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">帳號</span>
+        </div>
+        <button type="button" id="btn-logout" class="w-full sidebar-link text-slate-400 text-left">
+          <i data-lucide="log-out" class="w-4 h-4 opacity-70"></i> 登出
+        </button>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="ml-56 min-h-screen p-6 lg:p-8">
+    <a href="${origin}/" class="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--text)] mb-6 transition">← 返回儀表板</a>
+    <div class="flex items-baseline justify-between gap-4 mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-[var(--text)]">使用者與權限管理</h2>
+        <p class="text-sm text-[var(--muted)] mt-1">新增使用者帳號，並勾選其可存取的專案與角色（Admin/Editor/Viewer）</p>
+      </div>
+      <button type="button" id="btn-add-user" class="px-4 py-2.5 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:bg-blue-700 hover:shadow-md transition-all duration-200 flex items-center gap-2">
+        <i data-lucide="user-plus" class="w-4 h-4"></i> 新增使用者
+      </button>
+    </div>
+
+    <div id="user-list" class="space-y-3">
+    </div>
+
+    <div id="permission-panel" class="hidden fixed right-0 top-0 w-96 h-screen bg-white border-l border-[var(--border)] shadow-2xl z-40 overflow-y-auto">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-lg font-semibold text-[var(--text)]">權限設定</h3>
+          <button type="button" id="btn-close-panel" class="p-2 rounded-lg hover:bg-slate-100 transition">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <div id="permission-user-info" class="mb-6 p-4 rounded-lg bg-slate-50 border border-[var(--border)]">
+          <div class="font-medium text-[var(--text)]" id="perm-user-name">—</div>
+          <div class="text-sm text-[var(--muted)]" id="perm-user-email">—</div>
+        </div>
+        <div class="mb-4">
+          <div class="text-sm font-medium text-[var(--text)] mb-3">勾選專案存取權限</div>
+          <div id="permission-checkboxes" class="space-y-3">
+          </div>
+        </div>
+        <button type="button" id="btn-save-permissions" class="w-full btn-primary py-2.5">
+          儲存權限
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- 新增使用者 Modal -->
+  <div id="modal-add-user" class="hidden fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4">
+    <div class="card w-full max-w-md p-6">
+      <h3 class="text-lg font-semibold text-[var(--text)] mb-4">新增使用者</h3>
+      <form id="form-add-user" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-[var(--text)] mb-1.5">Email</label>
+          <input type="email" name="email" required class="input-base" placeholder="user@example.com">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--text)] mb-1.5">密碼</label>
+          <input type="password" name="password" required minlength="6" class="input-base" placeholder="至少 6 個字元">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--text)] mb-1.5">姓名（選填）</label>
+          <input type="text" name="name" class="input-base" placeholder="顯示名稱">
+        </div>
+        <div id="add-user-error" class="hidden text-sm text-red-600"></div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" id="btn-cancel-add-user" class="btn-secondary flex-1">取消</button>
+          <button type="submit" class="btn-primary flex-1">建立</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const ORIGIN = '${origin}';
+    const fetchOpts = { credentials: 'include' };
+    async function api(path) {
+      const res = await fetch(ORIGIN + path, fetchOpts);
+      if (res.status === 401) { window.location.href = ORIGIN + '/login'; return null; }
+      return res;
+    }
+    let USERS_CACHE = [];
+    let PROJECTS_CACHE = [];
+    let SELECTED_USER_ID = null;
+
+    async function loadUsers() {
+      const res = await api('/api/users');
+      if (!res) return;
+      let data;
+      try {
+        const json = await res.json();
+        if (!res.ok) {
+          document.getElementById('user-list').innerHTML = '<p class="text-center py-12 text-red-600">載入失敗：' + (json.message || json.code || res.status) + '</p>';
+          return;
+        }
+        data = json.data;
+      } catch (e) {
+        document.getElementById('user-list').innerHTML = '<p class="text-center py-12 text-red-600">回應解析失敗：' + (e.message || '未知錯誤') + '</p>';
+        return;
+      }
+      USERS_CACHE = data || [];
+      const el = document.getElementById('user-list');
+      el.innerHTML = USERS_CACHE.map(u => {
+        const roles = (u.project_roles || []).map(r => r.project_name + ' (' + r.role + ')').join('、') || '無';
+        return \`<div class="card p-4 flex items-center justify-between hover:border-[var(--accent)]/40 hover:shadow-[var(--shadow-card-hover)] transition-all duration-200 cursor-pointer" data-user-id="\${u.id}">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
+              <i data-lucide="user" class="w-5 h-5 text-slate-500"></i>
+            </div>
+            <div>
+              <div class="font-medium text-[var(--text)]">\${u.name || u.email}</div>
+              <div class="text-sm text-[var(--muted)]">\${u.email}</div>
+              <div class="text-xs text-[var(--muted)] mt-1">\${roles}</div>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+        </div>\`;
+      }).join('');
+      if (USERS_CACHE.length === 0) {
+        el.innerHTML = '<p class="text-center py-12 text-[var(--muted)]">尚無使用者，點擊「新增使用者」建立</p>';
+      }
+      document.querySelectorAll('[data-user-id]').forEach(card => {
+        card.addEventListener('click', () => openPermissionPanel(card.getAttribute('data-user-id')));
+      });
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    }
+
+    async function loadProjects() {
+      const res = await api('/api/projects');
+      if (!res) return;
+      try {
+        const json = await res.json();
+        if (!res.ok) {
+          console.warn('loadProjects failed:', json.message || json.code || res.status);
+          PROJECTS_CACHE = [];
+          return;
+        }
+        PROJECTS_CACHE = json.data || [];
+      } catch (e) {
+        console.warn('loadProjects parse error:', e.message);
+        PROJECTS_CACHE = [];
+      }
+    }
+
+    function openPermissionPanel(userId) {
+      SELECTED_USER_ID = userId;
+      const user = USERS_CACHE.find(u => u.id === userId);
+      if (!user) return;
+      document.getElementById('perm-user-name').textContent = user.name || user.email;
+      document.getElementById('perm-user-email').textContent = user.email;
+      const existingPerms = (user.project_roles || []).reduce((acc, r) => {
+        acc[r.project_id] = r.role;
+        return acc;
+      }, {});
+      const checkboxes = PROJECTS_CACHE.map(p => {
+        const role = existingPerms[p.id] || '';
+        return \`<label class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] hover:bg-slate-50 cursor-pointer">
+          <input type="checkbox" class="rounded" data-project-id="\${p.id}" \${role ? 'checked' : ''}>
+          <span class="flex-1 font-medium text-[var(--text)]">\${p.name}</span>
+          <select class="perm-role text-sm rounded border border-[var(--border)] px-2 py-1" data-project-id="\${p.id}">
+            <option value="viewer" \${role === 'viewer' ? 'selected' : ''}>Viewer</option>
+            <option value="editor" \${role === 'editor' ? 'selected' : ''}>Editor</option>
+            <option value="admin" \${role === 'admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </label>\`;
+      }).join('');
+      document.getElementById('permission-checkboxes').innerHTML = checkboxes || '<p class="text-sm text-[var(--muted)]">尚無專案</p>';
+      document.getElementById('permission-panel').classList.remove('hidden');
+      document.querySelectorAll('#permission-checkboxes input[type=checkbox]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const sel = document.querySelector(\`select[data-project-id="\${cb.dataset.projectId}"]\`);
+          if (sel) sel.disabled = !cb.checked;
+        });
+      });
+      document.querySelectorAll('#permission-checkboxes select.perm-role').forEach(sel => {
+        sel.disabled = !document.querySelector(\`input[data-project-id="\${sel.dataset.projectId}"]\`)?.checked;
+      });
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    }
+
+    document.getElementById('btn-close-panel').onclick = () => {
+      document.getElementById('permission-panel').classList.add('hidden');
+      SELECTED_USER_ID = null;
+    };
+
+    document.getElementById('btn-save-permissions').onclick = async () => {
+      if (!SELECTED_USER_ID) return;
+      const checkboxes = document.querySelectorAll('#permission-checkboxes input[type=checkbox]:checked');
+      const permissions = Array.from(checkboxes).map(cb => {
+        const sel = document.querySelector(\`select[data-project-id="\${cb.dataset.projectId}"]\`);
+        return { project_id: cb.dataset.projectId, role: sel?.value || 'viewer' };
+      });
+      try {
+        const res = await fetch(ORIGIN + '/api/users/' + SELECTED_USER_ID + '/permissions', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ permissions }),
+          credentials: 'include'
+        });
+        const json = await res.json();
+        if (json.success) {
+          await loadUsers();
+          document.getElementById('permission-panel').classList.add('hidden');
+          SELECTED_USER_ID = null;
+        } else {
+          alert(json.message || '儲存失敗');
+        }
+      } catch (e) {
+        alert('請求失敗: ' + (e.message || e));
+      }
+    };
+
+    document.getElementById('btn-add-user').onclick = () => {
+      document.getElementById('modal-add-user').classList.remove('hidden');
+      document.getElementById('add-user-error').classList.add('hidden');
+      document.getElementById('form-add-user').reset();
+    };
+
+    document.getElementById('btn-cancel-add-user').onclick = () => {
+      document.getElementById('modal-add-user').classList.add('hidden');
+    };
+
+    document.getElementById('modal-add-user').onclick = (e) => {
+      if (e.target.id === 'modal-add-user') document.getElementById('modal-add-user').classList.add('hidden');
+    };
+
+    document.getElementById('form-add-user').onsubmit = async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const email = form.email.value?.trim();
+      const password = form.password.value;
+      const name = form.name.value?.trim();
+      const errEl = document.getElementById('add-user-error');
+      errEl.classList.add('hidden');
+      try {
+        const res = await fetch(ORIGIN + '/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, name }),
+          credentials: 'include'
+        });
+        const json = await res.json();
+        if (json.success) {
+          document.getElementById('modal-add-user').classList.add('hidden');
+          await loadUsers();
+        } else {
+          errEl.textContent = json.message || '建立失敗';
+          errEl.classList.remove('hidden');
+        }
+      } catch (e) {
+        errEl.textContent = '請求失敗: ' + (e.message || e);
+        errEl.classList.remove('hidden');
+      }
+    };
+
+    document.getElementById('btn-logout').onclick = () => {
+      fetch(ORIGIN + '/api/auth/logout', { method: 'POST', credentials: 'include' }).then(() => { location.href = ORIGIN + '/login'; });
+    };
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      loadProjects().then(() => loadUsers());
+    });
+  </script>
+</body>
+</html>`;
+}

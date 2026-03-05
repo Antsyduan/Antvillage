@@ -1,0 +1,15 @@
+# AntVillageMgr - Cloudflare Workers + D1
+name = "antvillagemgr"
+main = "src/index.ts"
+compatibility_date = "2026-03-05"
+
+# D1 Database binding（dev 時使用遠端 D1，與 production 一致）
+[[d1_databases]]
+binding = "DB"
+database_name = "antvillagemgr"
+database_id = "ebb9752a-06cf-4dcb-8692-43cdbebbc6f5"
+remote = true
+
+# Environment variables (secrets via wrangler secret put)
+# MASTER_KEY, JWT_SECRET, etc. - never hardcode in code
+# JWT_SECRET: 登入 session 簽章，建議 32+ 字元隨機字串

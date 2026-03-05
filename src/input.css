@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+/* ============================================
+   AntVillageMgr 設計系統 — 質感優化
+   ============================================ */
+
+/* 全域變數（供 inline 與 utility 使用） */
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #2563eb;
+  --success: #059669;
+  --warn: #d97706;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.03);
+  --shadow-card-hover: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 6px -2px rgb(0 0 0 / 0.04);
+}
+
+/* 基礎排版 */
+* {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* 卡片 — 質感陰影與邊框 */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+
+/* 區塊描述文字 */
+.section-desc {
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* 統計數值 */
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+/* 按鈕基礎 */
+.btn-primary {
+  @apply px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200;
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+  box-shadow: 0 2px 8px -2px rgba(37, 99, 235, 0.4);
+}
+
+.btn-secondary {
+  @apply px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200;
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--text);
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+/* 輸入框 */
+.input-base {
+  @apply w-full px-4 py-2.5 rounded-lg text-sm transition-all duration-200;
+  border: 1px solid var(--border);
+}
+
+.input-base:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.input-base::placeholder {
+  color: #94a3b8;
+}
+
+/* Modal 背景 */
+.modal-backdrop {
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+/* 側邊欄導航連結 */
+.sidebar-link {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200;
+}
+
+.sidebar-link:hover {
+  background: rgba(51, 65, 85, 0.5);
+  color: white;
+}
+
+.sidebar-link.active {
+  background: rgba(51, 65, 85, 0.6);
+  color: white;
+}
+
+/* 統計卡片 */
+.stat-card {
+  @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200;
+  background: white;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* 程式碼區塊 */
+.code-block {
+  @apply font-mono p-4 rounded-lg text-[12px] overflow-x-auto;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+/* 標籤 */
+.badge-success {
+  @apply text-xs font-medium px-2.5 py-1 rounded-full;
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.badge-muted {
+  @apply text-xs font-medium px-2.5 py-1 rounded-full;
+  background: #f1f5f9;
+  color: #64748b;
+}

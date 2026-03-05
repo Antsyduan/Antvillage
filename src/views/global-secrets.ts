@@ -1,0 +1,316 @@
+/**
+ * 全域 API 金鑰管理（僅系統管理員）
+ */
+export function globalSecretsHtml(baseUrl: string): string {
+  const origin = new URL(baseUrl).origin;
+  return `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>全域 API 金鑰 — AntVillageMgr</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    body { background: var(--bg); }
+  </style>
+</head>
+<body>
+  <aside class="fixed left-0 top-0 w-56 h-screen flex flex-col bg-[#0f172a] text-white z-50 border-r border-slate-800/50 shadow-xl">
+    <div class="p-5 border-b border-slate-700">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center">
+          <i data-lucide="key" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h1 class="font-semibold text-sm">AntVillageMgr</h1>
+          <p class="text-[11px] text-slate-400">全域 API 金鑰</p>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 p-3 overflow-y-auto">
+      <div class="mb-4">
+        <div class="px-3 mb-2">
+          <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">功能</span>
+        </div>
+        <div class="space-y-0.5">
+          <a href="${origin}/" class="sidebar-link text-slate-300">
+            <i data-lucide="layout-grid" class="w-4 h-4 opacity-70"></i> 儀表板
+          </a>
+          <a href="${origin}/users" class="sidebar-link text-slate-300">
+            <i data-lucide="users" class="w-4 h-4 opacity-70"></i> 使用者管理
+          </a>
+          <a href="${origin}/global-secrets" class="sidebar-link active">
+            <i data-lucide="key" class="w-4 h-4 opacity-70"></i> 全域 API 金鑰
+          </a>
+        </div>
+      </div>
+      <div class="pt-3 mt-3 border-t border-slate-700">
+        <div class="px-3 mb-2">
+          <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">帳號</span>
+        </div>
+        <button type="button" id="btn-logout" class="w-full sidebar-link text-slate-400 text-left">
+          <i data-lucide="log-out" class="w-4 h-4 opacity-70"></i> 登出
+        </button>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="ml-56 min-h-screen p-6 lg:p-8">
+    <a href="${origin}/" class="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--text)] mb-6 transition">← 返回儀表板</a>
+    <div class="flex items-baseline justify-between gap-4 mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-[var(--text)]">全域 API 金鑰</h2>
+        <p class="text-sm text-[var(--muted)] mt-1">設定各專案可共用的 API 金鑰（Gemini、Line、Google 等），僅系統管理員可管理</p>
+      </div>
+      <button type="button" id="btn-add" class="px-4 py-2.5 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:bg-blue-700 hover:shadow-md transition-all duration-200 flex items-center gap-2">
+        <i data-lucide="plus" class="w-4 h-4"></i> 新增金鑰
+      </button>
+    </div>
+
+    <div id="secret-list" class="space-y-3">
+    </div>
+
+    <div id="modal-add" class="hidden fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4">
+      <div class="card w-full max-w-md p-6">
+        <h3 class="text-lg font-semibold text-[var(--text)] mb-4">新增全域 API 金鑰</h3>
+        <form id="form-add" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-[var(--text)] mb-1.5">服務類型</label>
+            <select name="provider_type" required class="input-base">
+              <option value="GEMINI">Gemini (Google AI)</option>
+              <option value="GOOGLE">Google</option>
+              <option value="LINE">Line</option>
+              <option value="OPENAI">OpenAI</option>
+              <option value="OTHER">其他</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--text)] mb-1.5">金鑰名稱</label>
+            <input type="text" name="key_name" required placeholder="GEMINI_API_KEY" class="input-base font-mono">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--text)] mb-1.5">金鑰內容</label>
+            <input type="password" name="value" required placeholder="輸入 API Key" class="input-base">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--text)] mb-2">授權給專案</label>
+            <div id="add-project-checkboxes" class="space-y-2 max-h-40 overflow-y-auto">
+            </div>
+          </div>
+          <div id="add-error" class="hidden text-sm text-red-600"></div>
+          <div class="flex gap-3 pt-2">
+          <button type="button" id="btn-cancel-add" class="btn-secondary flex-1">取消</button>
+          <button type="submit" class="btn-primary flex-1">建立</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="modal-grants" class="hidden fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4">
+      <div class="card w-full max-w-md p-6">
+        <h3 class="text-lg font-semibold text-[var(--text)] mb-2">授權專案</h3>
+        <p id="grants-secret-name" class="text-sm text-[var(--muted)] mb-4"></p>
+        <div id="grants-checkboxes" class="space-y-2 max-h-60 overflow-y-auto mb-4">
+        </div>
+        <div class="flex gap-3">
+          <button type="button" id="btn-cancel-grants" class="btn-secondary flex-1">取消</button>
+          <button type="button" id="btn-save-grants" class="btn-primary flex-1">儲存</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const ORIGIN = '${origin}';
+    const fetchOpts = { credentials: 'include' };
+    let SECRETS = [];
+    let PROJECTS = [];
+    let SELECTED_SECRET_ID = null;
+
+    async function api(path) {
+      const res = await fetch(ORIGIN + path, fetchOpts);
+      if (res.status === 401) { location.href = ORIGIN + '/login'; return null; }
+      if (res.status === 403) { location.href = ORIGIN + '/?error=forbidden'; return null; }
+      return res;
+    }
+
+    async function loadData() {
+      const [secretsRes, projectsRes] = await Promise.all([
+        api('/api/global-secrets'),
+        api('/api/projects')
+      ]);
+      if (!secretsRes || !projectsRes) return;
+      if (!secretsRes.ok) {
+        if (secretsRes.status === 403) return;
+        document.getElementById('secret-list').innerHTML = '<p class="text-red-600">載入失敗</p>';
+        return;
+      }
+      const secretsJson = await secretsRes.json();
+      const projectsJson = await projectsRes.json();
+      SECRETS = secretsJson.data?.secrets || [];
+      PROJECTS = projectsJson.data || [];
+      render();
+    }
+
+    function render() {
+      const el = document.getElementById('secret-list');
+      if (SECRETS.length === 0) {
+        el.innerHTML = '<p class="text-center py-12 text-[var(--muted)]">尚無全域金鑰，點擊「新增金鑰」建立</p>';
+        return;
+      }
+      el.innerHTML = SECRETS.map(s => \`
+        <div class="card p-4 flex items-center justify-between hover:shadow-[var(--shadow-card-hover)] transition-all duration-200">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+              <i data-lucide="key" class="w-5 h-5 text-slate-500"></i>
+            </div>
+            <div>
+              <div class="font-medium text-[var(--text)]">\${s.key_name}</div>
+              <div class="text-sm text-[var(--muted)]">\${s.provider_type} · \${(s.projects || []).map(p => p.name).join('、') || '未授權'}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" class="grant-btn px-3 py-1.5 rounded-lg text-sm text-[var(--accent)] hover:bg-blue-50 transition" data-id="\${s.id}">授權專案</button>
+            <button type="button" class="delete-btn px-3 py-1.5 rounded-lg text-sm text-red-600 hover:bg-red-50 transition" data-id="\${s.id}">刪除</button>
+          </div>
+        </div>
+      \`).join('');
+      document.querySelectorAll('.grant-btn').forEach(btn => {
+        btn.onclick = () => openGrantsModal(btn.dataset.id);
+      });
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.onclick = () => deleteSecret(btn.dataset.id);
+      });
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    }
+
+    function renderAddProjectCheckboxes(selectedIds = []) {
+      const el = document.getElementById('add-project-checkboxes');
+      el.innerHTML = PROJECTS.map(p => \`
+        <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 cursor-pointer">
+          <input type="checkbox" name="project_id" value="\${p.id}" \${selectedIds.includes(p.id) ? 'checked' : ''}>
+          <span class="text-sm">\${p.name}</span>
+        </label>
+      \`).join('') || '<p class="text-sm text-[var(--muted)]">尚無專案</p>';
+    }
+
+    document.getElementById('btn-add').onclick = () => {
+      document.getElementById('modal-add').classList.remove('hidden');
+      document.getElementById('add-error').classList.add('hidden');
+      document.getElementById('form-add').reset();
+      renderAddProjectCheckboxes();
+    };
+
+    document.getElementById('btn-cancel-add').onclick = () => {
+      document.getElementById('modal-add').classList.add('hidden');
+    };
+
+    document.getElementById('modal-add').onclick = (e) => {
+      if (e.target.id === 'modal-add') document.getElementById('modal-add').classList.add('hidden');
+    };
+
+    document.getElementById('form-add').onsubmit = async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const projectIds = Array.from(form.querySelectorAll('input[name="project_id"]:checked')).map(cb => cb.value);
+      const errEl = document.getElementById('add-error');
+      errEl.classList.add('hidden');
+      try {
+        const res = await fetch(ORIGIN + '/api/global-secrets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            provider_type: form.provider_type.value,
+            key_name: form.key_name.value.trim(),
+            value: form.value.value,
+            project_ids: projectIds
+          }),
+          credentials: 'include'
+        });
+        const json = await res.json();
+        if (json.success) {
+          document.getElementById('modal-add').classList.add('hidden');
+          await loadData();
+        } else {
+          errEl.textContent = json.message || '建立失敗';
+          errEl.classList.remove('hidden');
+        }
+      } catch (e) {
+        errEl.textContent = '請求失敗: ' + (e.message || e);
+        errEl.classList.remove('hidden');
+      }
+    };
+
+    function openGrantsModal(secretId) {
+      SELECTED_SECRET_ID = secretId;
+      const s = SECRETS.find(x => x.id === secretId);
+      if (!s) return;
+      document.getElementById('grants-secret-name').textContent = s.key_name + ' (' + s.provider_type + ')';
+      const el = document.getElementById('grants-checkboxes');
+      el.innerHTML = PROJECTS.map(p => \`
+        <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 cursor-pointer">
+          <input type="checkbox" class="grant-cb" data-project-id="\${p.id}" \${(s.project_ids || []).includes(p.id) ? 'checked' : ''}>
+          <span class="text-sm">\${p.name}</span>
+        </label>
+      \`).join('');
+      document.getElementById('modal-grants').classList.remove('hidden');
+    }
+
+    document.getElementById('btn-cancel-grants').onclick = () => {
+      document.getElementById('modal-grants').classList.add('hidden');
+      SELECTED_SECRET_ID = null;
+    };
+
+    document.getElementById('modal-grants').onclick = (e) => {
+      if (e.target.id === 'modal-grants') document.getElementById('modal-grants').classList.add('hidden');
+    };
+
+    document.getElementById('btn-save-grants').onclick = async () => {
+      if (!SELECTED_SECRET_ID) return;
+      const projectIds = Array.from(document.querySelectorAll('#grants-checkboxes .grant-cb:checked')).map(cb => cb.dataset.projectId);
+      try {
+        const res = await fetch(ORIGIN + '/api/global-secrets/' + SELECTED_SECRET_ID + '/grants', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_ids: projectIds }),
+          credentials: 'include'
+        });
+        const json = await res.json();
+        if (json.success) {
+          document.getElementById('modal-grants').classList.add('hidden');
+          SELECTED_SECRET_ID = null;
+          await loadData();
+        } else {
+          alert(json.message || '儲存失敗');
+        }
+      } catch (e) {
+        alert('請求失敗: ' + (e.message || e));
+      }
+    };
+
+    async function deleteSecret(id) {
+      if (!confirm('確定要刪除此全域金鑰？')) return;
+      try {
+        const res = await fetch(ORIGIN + '/api/global-secrets/' + id, { method: 'DELETE', credentials: 'include' });
+        const json = await res.json();
+        if (json.success) await loadData();
+        else alert(json.message || '刪除失敗');
+      } catch (e) {
+        alert('請求失敗: ' + (e.message || e));
+      }
+    }
+
+    document.getElementById('btn-logout').onclick = () => {
+      fetch(ORIGIN + '/api/auth/logout', { method: 'POST', credentials: 'include' }).then(() => { location.href = ORIGIN + '/login'; });
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      loadData();
+    });
+  </script>
+</body>
+</html>`;
+}

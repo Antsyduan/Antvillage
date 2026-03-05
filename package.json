@@ -1,0 +1,36 @@
+{
+  "name": "antvillagemgr",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build:css": "npx @tailwindcss/cli -i src/input.css -o dist/styles.css --minify && node scripts/embed-css.mjs",
+    "dev": "npm run build:css && wrangler dev",
+    "deploy": "npm run build:css && wrangler deploy",
+    "db:generate": "prisma generate",
+    "db:migrate:diff": "prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script",
+    "db:migrate:local": "wrangler d1 execute antvillagemgr --local --file=prisma/migrations/0001_init.sql",
+    "db:migrate:local:all": "wrangler d1 execute antvillagemgr --local --file=prisma/migrations/0001_init.sql && wrangler d1 execute antvillagemgr --local --file=prisma/migrations/0002_rate_limit.sql && wrangler d1 execute antvillagemgr --local --file=prisma/migrations/0003_project_quota.sql && wrangler d1 execute antvillagemgr --local --file=prisma/migrations/0004_skill_map_and_daily.sql && wrangler d1 execute antvillagemgr --local --file=prisma/migrations/0005_token_limit_and_skill_version.sql",
+    "db:migrate:remote": "wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/0001_init.sql",
+    "db:migrate:remote:all": "wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/0002_rate_limit.sql && wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/0003_project_quota.sql && wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/0004_skill_map_and_daily.sql && wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/0005_token_limit_and_skill_version.sql",
+    "db:seed:local": "wrangler d1 execute antvillagemgr --local --file=prisma/seed.sql",
+    "db:seed:remote": "wrangler d1 execute antvillagemgr --remote --file=prisma/seed.sql",
+    "db:seed:customer-service": "wrangler d1 execute antvillagemgr --local --file=prisma/seed_customer_service_skill.sql",
+    "trust:check-secrets": "bash scripts/check-secrets.sh http://localhost:8787",
+    "admin:update": "node scripts/update-admin.mjs",
+    "db:fix-user-status": "wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/fix_user_status.sql",
+    "db:migrate:global-secrets": "wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/0006_global_secrets.sql && wrangler d1 execute antvillagemgr --remote --file=prisma/migrations/set_system_admin.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "@tailwindcss/cli": "^4.2.1",
+    "prisma": "^6.6.0",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.7.2",
+    "wrangler": "^4.70.0"
+  },
+  "dependencies": {
+    "@prisma/adapter-d1": "^6.6.0",
+    "@prisma/client": "^6.6.0",
+    "hono": "^4.12.5"
+  }
+}
