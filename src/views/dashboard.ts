@@ -253,7 +253,7 @@ export function dashboardHtml(_baseUrl: string): string {
             <i data-lucide="shield-check" class="w-4 h-4"></i> 驗證金鑰
           </button>
         </div>
-        <div class="flex flex-wrap gap-2 items-center py-3 border-y border-[var(--border)] mb-4">
+        <div class="flex flex-wrap gap-2 items-center py-3 border-y border-slate-200/40 mb-4">
           <span class="flow-step text-xs px-3 py-1.5 rounded-full font-medium" data-step="0">1. 子網站發送</span>
           <span class="text-[var(--muted)]">→</span>
           <span class="flow-step text-xs px-3 py-1.5 rounded-full bg-slate-100 text-[var(--muted)]" data-step="1">2. 中台驗證</span>
@@ -445,7 +445,7 @@ export function dashboardHtml(_baseUrl: string): string {
       };
       const fmtDate = (d) => d ? new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '—';
       el.innerHTML = projects.map(p => \`
-        <a href="/projects/\${p.id}" class="card block p-5 hover:border-[var(--accent)]/40 hover:shadow-[var(--shadow-card-hover)] transition-all duration-200 group overflow-hidden min-w-0 no-underline flex flex-col">
+        <a href="/projects/\${p.id}" class="card project-card block p-5 hover:border-[var(--accent)]/40 hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 group overflow-hidden min-w-0 no-underline flex flex-col">
           <div class="flex justify-between items-start gap-2 mb-2">
             <h4 class="font-semibold text-[var(--text)] group-hover:text-[var(--accent)] transition truncate min-w-0 flex-1">\${p.name}</h4>
             <span class="text-xs font-medium px-2 py-0.5 rounded-full shrink-0 \${p.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}">\${p.status === 'active' ? '線上' : '停用'}</span>
@@ -456,7 +456,7 @@ export function dashboardHtml(_baseUrl: string): string {
             \${p.quota?.token_limit != null ? \`<span title="Token 額度">\${quotaIcon(p.quota.token_remaining_pct)}</span>\` : ''}
             \${p.quota?.calls_limit != null ? \`<span title="調用額度">\${quotaIcon(p.quota.calls_remaining_pct)}</span>\` : ''}
           </div>\` : ''}
-          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs pt-2 mt-1 border-t border-slate-200/50">
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs pt-2 mt-2 project-card-footer">
             <button data-key="\${(p.third_party_key || '').replace(/"/g, '&quot;')}" onclick="event.preventDefault();event.stopPropagation();" class="copy-key text-[var(--accent)] font-medium hover:underline shrink-0">複製金鑰</button>
             <span class="text-[var(--muted)] shrink-0">建立於 \${fmtDate(p.created_at)} · \${p._count?.users || 0} 人 · \${p._count?.skills || 0} 技能</span>
           </div>
@@ -536,7 +536,7 @@ export function dashboardHtml(_baseUrl: string): string {
         <table class="audit-table-pro w-full">
           <thead><tr><th class="text-left py-3 px-4">操作</th><th class="text-left py-3 px-4">專案</th><th class="text-right py-3 px-4">時間</th></tr></thead>
           <tbody>\` + (logsSlice.length ? logsSlice.map(l => \`
-            <tr class="border-t border-[var(--border)]">
+            <tr class="border-t border-slate-200/40">
               <td class="py-3 px-4"><span class="action-badge \${actionBadgeClass(l.action)} border">\${actionLabelShort(l.action)}</span></td>
               <td class="py-3 px-4 text-sm text-[var(--muted)] truncate max-w-[120px]">\${l.project?.name || '—'}</td>
               <td class="py-3 px-4 text-xs text-[var(--muted)] whitespace-nowrap text-right">\${new Date(l.timestamp).toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>

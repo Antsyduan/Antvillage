@@ -69,6 +69,17 @@ body {
   min-width: 0;
 }
 
+/* 專案卡片：分隔線改為柔和漸層、hover 微浮效果 */
+.project-card {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.03);
+}
+.project-card:hover {
+  box-shadow: 0 8px 25px -5px rgb(0 0 0 / 0.08), 0 4px 10px -4px rgb(0 0 0 / 0.04);
+}
+.project-card-footer {
+  border-top: 1px solid rgba(226, 232, 240, 0.35);
+}
+
 /* 區塊描述文字 */
 .section-desc {
   color: var(--muted);
